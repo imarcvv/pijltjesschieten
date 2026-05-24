@@ -1,17 +1,7 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean, json, float } from "drizzle-orm/mysql-core";
 
-/**
- * Core user table backing auth flow.
- * Extend this file with additional tables as your product grows.
- * Columns use camelCase to match both database fields and generated types.
- */
 export const users = mysqlTable("users", {
-  /**
-   * Surrogate primary key. Auto-incremented numeric value managed by the database.
-   * Use this for relations between tables.
-   */
   id: int("id").autoincrement().primaryKey(),
-  /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
@@ -25,4 +15,29 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+export const sponsors = mysqlTable("sponsors", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  logoUrl: text("logoUrl"),
+  message: text("message").notNull(),
+  clickUrl: text("clickUrl").notNull(),
+  active: boolean("active").default(true).notNull(),
+  color: varchar("color", { length: 32 }).default("#e8d5a3").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Sponsor = typeof sponsors.$inferSelect;
+export type InsertSponsor = typeof sponsors.$inferInsert;
+
+export const darts = mysqlTable("darts", {
+  id: int("id").autoincrement().primaryKey(),
+  sponsorId: int("sponsorId").references(() => sponsors.id),
+  sessionId: varchar("sessionId", { length: 64 }).notNull(),
+  shooterName: varchar("shooterName", { length: 128 }),
+  trajectoryData: json("trajectoryData"),
+  firedAt: timestamp("firedAt").defaultNow().notNull(),
+});
+
+export type Dart = typeof darts.$inferSelect;
+export type InsertDart = typeof darts.$inferInsert;
