@@ -23,6 +23,10 @@ export const sponsors = mysqlTable("sponsors", {
   clickUrl: text("clickUrl").notNull(),
   active: boolean("active").default(true).notNull(),
   color: varchar("color", { length: 32 }).default("#e8d5a3").notNull(),
+  // Golden dart prize mechanic
+  goldenChance: float("goldenChance").default(0.05).notNull(), // 0.0–1.0, default 5%
+  prizeText: text("prizeText"),                                 // e.g. "Win een weekendje weg!"
+  prizeClaimUrl: text("prizeClaimUrl"),                         // URL to claim the prize
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -36,6 +40,7 @@ export const darts = mysqlTable("darts", {
   sessionId: varchar("sessionId", { length: 64 }).notNull(),
   shooterName: varchar("shooterName", { length: 128 }),
   trajectoryData: json("trajectoryData"),
+  isGolden: boolean("isGolden").default(false).notNull(), // Was this dart a golden winner?
   firedAt: timestamp("firedAt").defaultNow().notNull(),
 });
 

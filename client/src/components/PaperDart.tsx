@@ -7,10 +7,13 @@ export interface DartSponsor {
   color: string;
   message: string;
   clickUrl: string;
+  prizeText?: string | null;
+  prizeClaimUrl?: string | null;
 }
 
 interface PaperDartProps {
   sponsor?: DartSponsor | null;
+  isGolden?: boolean;
   width?: number;
   height?: number;
   spinning?: boolean;
@@ -24,7 +27,7 @@ interface PaperDartProps {
  * If a logoUrl is provided, the logo is drawn on the dart body with
  * a slight wave/skew to simulate being printed on rolled paper.
  */
-export function PaperDart({ sponsor, width = 120, height = 40, spinning = false, className = "", scale = 1 }: PaperDartProps) {
+export function PaperDart({ sponsor, isGolden = false, width = 120, height = 40, spinning = false, className = "", scale = 1 }: PaperDartProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animFrameRef = useRef<number>(0);
   const angleRef = useRef(0);
@@ -76,11 +79,20 @@ export function PaperDart({ sponsor, width = 120, height = 40, spinning = false,
 
     // ── Dart body (tapered cone shape) ────────────────────────────────────
     const gradient = ctx.createLinearGradient(bodyStart, tipY - bodyRadius, bodyStart, tipY + bodyRadius);
-    const baseColor = hexToRgb(dartColor);
-    gradient.addColorStop(0, `rgba(${Math.min(255, baseColor.r + 40)},${Math.min(255, baseColor.g + 30)},${Math.min(255, baseColor.b + 20)},1)`);
-    gradient.addColorStop(0.3, `rgba(${baseColor.r},${baseColor.g},${baseColor.b},1)`);
-    gradient.addColorStop(0.7, `rgba(${Math.max(0, baseColor.r - 20)},${Math.max(0, baseColor.g - 15)},${Math.max(0, baseColor.b - 10)},1)`);
-    gradient.addColorStop(1, `rgba(${Math.max(0, baseColor.r - 40)},${Math.max(0, baseColor.g - 30)},${Math.max(0, baseColor.b - 20)},1)`);
+    const baseColor = isGolden ? { r: 200, g: 169, b: 110 } : hexToRgb(dartColor);
+    if (isGolden) {
+      // Gold shimmer gradient
+      gradient.addColorStop(0, "#8B6914");
+      gradient.addColorStop(0.25, "#C8A96E");
+      gradient.addColorStop(0.5, "#FFD700");
+      gradient.addColorStop(0.75, "#FFA500");
+      gradient.addColorStop(1, "#8B6914");
+    } else {
+      gradient.addColorStop(0, `rgba(${Math.min(255, baseColor.r + 40)},${Math.min(255, baseColor.g + 30)},${Math.min(255, baseColor.b + 20)},1)`);
+      gradient.addColorStop(0.3, `rgba(${baseColor.r},${baseColor.g},${baseColor.b},1)`);
+      gradient.addColorStop(0.7, `rgba(${Math.max(0, baseColor.r - 20)},${Math.max(0, baseColor.g - 15)},${Math.max(0, baseColor.b - 10)},1)`);
+      gradient.addColorStop(1, `rgba(${Math.max(0, baseColor.r - 40)},${Math.max(0, baseColor.g - 30)},${Math.max(0, baseColor.b - 20)},1)`);
+    }
 
     ctx.beginPath();
     ctx.moveTo(tipX, tipY);
@@ -93,11 +105,29 @@ export function PaperDart({ sponsor, width = 120, height = 40, spinning = false,
     ctx.fill();
     ctx.restore();
 
+    // ── Golden glow outline ───────────────────────────────────────────────
+    if (isGolden) {
+      ctx.save();
+      ctx.shadowColor = "rgba(255,215,0,0.9)";
+      ctx.shadowBlur = 12 + Math.sin(spinAngle * 3) * 4;
+      ctx.strokeStyle = "rgba(255,215,0,0.7)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(tipX, tipY);
+      ctx.quadraticCurveTo(bodyStart, tipY - bodyRadius * 0.5, bodyStart + W * 0.1, tipY - bodyRadius);
+      ctx.lineTo(bodyEnd, tipY - tailRadius);
+      ctx.lineTo(bodyEnd, tipY + tailRadius);
+      ctx.lineTo(bodyStart + W * 0.1, tipY + bodyRadius);
+      ctx.quadraticCurveTo(bodyStart, tipY + bodyRadius * 0.5, tipX, tipY);
+      ctx.stroke();
+      ctx.restore();
+    }
+
     // ── Twisted paper stripes ─────────────────────────────────────────────
     const stripeCount = 7;
     const stripeSpacing = (bodyEnd - bodyStart) / stripeCount;
     ctx.save();
-    ctx.globalAlpha = 0.35;
+    ctx.globalAlpha = isGolden ? 0.5 : 0.35;
 
     for (let i = 0; i < stripeCount; i++) {
       const x = bodyStart + i * stripeSpacing;
@@ -109,9 +139,11 @@ export function PaperDart({ sponsor, width = 120, height = 40, spinning = false,
       ctx.moveTo(x, tipY - rTop + offset);
       ctx.lineTo(x + stripeSpacing * 0.7, tipY - rTop * 0.5 + offset * 0.5);
       ctx.lineWidth = Math.max(1, stripeSpacing * 0.25);
-      ctx.strokeStyle = i % 2 === 0
-        ? `rgba(${Math.max(0, baseColor.r - 50)},${Math.max(0, baseColor.g - 40)},${Math.max(0, baseColor.b - 30)},1)`
-        : `rgba(${Math.min(255, baseColor.r + 60)},${Math.min(255, baseColor.g + 50)},${Math.min(255, baseColor.b + 40)},1)`;
+      ctx.strokeStyle = isGolden
+        ? (i % 2 === 0 ? "rgba(139,105,20,1)" : "rgba(255,235,100,1)")
+        : (i % 2 === 0
+          ? `rgba(${Math.max(0, baseColor.r - 50)},${Math.max(0, baseColor.g - 40)},${Math.max(0, baseColor.b - 30)},1)`
+          : `rgba(${Math.min(255, baseColor.r + 60)},${Math.min(255, baseColor.g + 50)},${Math.min(255, baseColor.b + 40)},1)`);
       ctx.stroke();
     }
     ctx.restore();

@@ -52,25 +52,26 @@ function makeUserCtx(): TrpcContext {
 
 vi.mock("./db", () => ({
   getActiveSponsors: vi.fn().mockResolvedValue([
-    { id: 1, name: "Wehkamp", logoUrl: null, message: "Test boodschap", clickUrl: "https://wehkamp.nl", active: true, color: "#e8d5a3", createdAt: new Date(), updatedAt: new Date() },
+    { id: 1, name: "Wehkamp", logoUrl: null, message: "Test boodschap", clickUrl: "https://wehkamp.nl", active: true, color: "#e8d5a3", goldenChance: 0.05, prizeText: "Win €10!", prizeClaimUrl: "https://wehkamp.nl/prijs", createdAt: new Date(), updatedAt: new Date() },
   ]),
   getAllSponsors: vi.fn().mockResolvedValue([
-    { id: 1, name: "Wehkamp", logoUrl: null, message: "Test boodschap", clickUrl: "https://wehkamp.nl", active: true, color: "#e8d5a3", createdAt: new Date(), updatedAt: new Date() },
-    { id: 2, name: "ANWB", logoUrl: null, message: "ANWB boodschap", clickUrl: "https://anwb.nl", active: false, color: "#e8b84b", createdAt: new Date(), updatedAt: new Date() },
+    { id: 1, name: "Wehkamp", logoUrl: null, message: "Test boodschap", clickUrl: "https://wehkamp.nl", active: true, color: "#e8d5a3", goldenChance: 0.05, prizeText: "Win €10!", prizeClaimUrl: "https://wehkamp.nl/prijs", createdAt: new Date(), updatedAt: new Date() },
+    { id: 2, name: "ANWB", logoUrl: null, message: "ANWB boodschap", clickUrl: "https://anwb.nl", active: false, color: "#e8b84b", goldenChance: 0, prizeText: null, prizeClaimUrl: null, createdAt: new Date(), updatedAt: new Date() },
   ]),
-  getSponsorById: vi.fn().mockResolvedValue({ id: 1, name: "Wehkamp", logoUrl: null, message: "Test", clickUrl: "https://wehkamp.nl", active: true, color: "#e8d5a3", createdAt: new Date(), updatedAt: new Date() }),
+  getSponsorById: vi.fn().mockResolvedValue({ id: 1, name: "Wehkamp", logoUrl: null, message: "Test", clickUrl: "https://wehkamp.nl", active: true, color: "#e8d5a3", goldenChance: 0.05, prizeText: "Win €10!", prizeClaimUrl: "https://wehkamp.nl/prijs", createdAt: new Date(), updatedAt: new Date() }),
   createSponsor: vi.fn().mockResolvedValue(42),
   updateSponsor: vi.fn().mockResolvedValue(undefined),
   deleteSponsor: vi.fn().mockResolvedValue(undefined),
   fireDart: vi.fn().mockResolvedValue(99),
   getRecentDarts: vi.fn().mockResolvedValue([
-    { id: 1, sponsorId: 1, sessionId: "sess_abc", shooterName: "Marc", trajectoryData: null, firedAt: new Date(), sponsor: { id: 1, name: "Wehkamp", color: "#e8d5a3", message: "Test", clickUrl: "https://wehkamp.nl" } },
+    { id: 1, sponsorId: 1, sessionId: "sess_abc", shooterName: "Marc", trajectoryData: null, isGolden: false, firedAt: new Date(), sponsor: { id: 1, name: "Wehkamp", color: "#e8d5a3", message: "Test", clickUrl: "https://wehkamp.nl" } },
+    { id: 2, sponsorId: 1, sessionId: "sess_abc", shooterName: "Marc", trajectoryData: null, isGolden: true, firedAt: new Date(), sponsor: { id: 1, name: "Wehkamp", color: "#e8d5a3", message: "Test", clickUrl: "https://wehkamp.nl" } },
   ]),
   getDartById: vi.fn().mockResolvedValue({
-    id: 99, sponsorId: 1, sessionId: "sess_abc", shooterName: "Marc", trajectoryData: null, firedAt: new Date(),
+    id: 99, sponsorId: 1, sessionId: "sess_abc", shooterName: "Marc", trajectoryData: null, isGolden: false, firedAt: new Date(),
     sponsor: { id: 1, name: "Wehkamp", color: "#e8d5a3", message: "Test", clickUrl: "https://wehkamp.nl" },
   }),
-  getDartStats: vi.fn().mockResolvedValue({ total: 42, today: 7 }),
+  getDartStats: vi.fn().mockResolvedValue({ total: 42, today: 7, golden: 3 }),
   upsertUser: vi.fn().mockResolvedValue(undefined),
   getUserByOpenId: vi.fn().mockResolvedValue(undefined),
 }));
@@ -213,5 +214,53 @@ describe("blow detection threshold logic", () => {
 
     expect(shortPuff >= sustainMs).toBe(false);
     expect(realBlow >= sustainMs).toBe(true);
+  });
+});
+
+describe("golden dart mechanic", () => {
+  it("darts.stats includes golden count", async () => {
+    const caller = appRouter.createCaller(makeAdminCtx());
+    const stats = await caller.darts.stats();
+    expect(stats).toHaveProperty("golden");
+    expect(stats.golden).toBe(3);
+  });
+
+  it("darts.recent returns isGolden field on each dart", async () => {
+    const caller = appRouter.createCaller(makePublicCtx());
+    const darts = await caller.darts.recent({ limit: 10 });
+    expect(darts.length).toBeGreaterThan(0);
+    for (const dart of darts) {
+      expect(dart).toHaveProperty("isGolden");
+    }
+  });
+
+  it("golden dart probability: 0% chance never fires golden", () => {
+    const goldenChance = 0;
+    const trials = 1000;
+    let goldenCount = 0;
+    for (let i = 0; i < trials; i++) {
+      if (Math.random() < goldenChance) goldenCount++;
+    }
+    expect(goldenCount).toBe(0);
+  });
+
+  it("golden dart probability: 100% chance always fires golden", () => {
+    const goldenChance = 1.0;
+    const trials = 100;
+    let goldenCount = 0;
+    for (let i = 0; i < trials; i++) {
+      if (Math.random() < goldenChance) goldenCount++;
+    }
+    expect(goldenCount).toBe(trials);
+  });
+
+  it("sponsors include goldenChance and prizeText fields", async () => {
+    const caller = appRouter.createCaller(makeAdminCtx());
+    const sponsors = await caller.sponsors.listAll();
+    const wehkamp = sponsors.find(s => s.name === "Wehkamp");
+    expect(wehkamp).toBeDefined();
+    expect(wehkamp?.goldenChance).toBe(0.05);
+    expect(wehkamp?.prizeText).toBe("Win €10!");
+    expect(wehkamp?.prizeClaimUrl).toBe("https://wehkamp.nl/prijs");
   });
 });

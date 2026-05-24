@@ -4,6 +4,7 @@ import { PaperDart, DartSponsor } from "./PaperDart";
 export interface FlyingDart {
   id: string;
   sponsor: DartSponsor | null;
+  isGolden?: boolean;
   startX: number;
   startY: number;
   angle: number; // degrees
@@ -143,6 +144,7 @@ export function DartArena({ darts, onDartClick, onDartLanded }: DartArenaProps) 
         >
           <PaperDart
             sponsor={dart.sponsor}
+            isGolden={dart.isGolden}
             width={100}
             height={34}
             spinning={dart.phase === "flying"}

@@ -15,6 +15,13 @@
       "when": 1779646780520,
       "tag": "0001_unknown_human_cannonball",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1779647744711,
+      "tag": "0002_busy_spacker_dave",
+      "breakpoints": true
     }
   ]
 }

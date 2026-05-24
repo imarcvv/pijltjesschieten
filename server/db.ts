@@ -128,12 +128,13 @@ export async function getDartById(id: number): Promise<(Dart & { sponsor: Sponso
   return { ...rows[0].darts, sponsor: rows[0].sponsors ?? null };
 }
 
-export async function getDartStats(): Promise<{ total: number; today: number }> {
+export async function getDartStats(): Promise<{ total: number; today: number; golden: number }> {
   const db = await getDb();
-  if (!db) return { total: 0, today: 0 };
+  if (!db) return { total: 0, today: 0, golden: 0 };
   const allDarts = await db.select().from(darts);
   const now = new Date();
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const todayDarts = allDarts.filter(d => new Date(d.firedAt) >= startOfDay);
-  return { total: allDarts.length, today: todayDarts.length };
+  const goldenDarts = allDarts.filter(d => d.isGolden);
+  return { total: allDarts.length, today: todayDarts.length, golden: goldenDarts.length };
 }

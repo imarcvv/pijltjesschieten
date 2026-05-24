@@ -50,6 +50,9 @@ export const appRouter = router({
         message: z.string().min(1),
         clickUrl: z.string().url(),
         color: z.string().default("#e8d5a3"),
+        goldenChance: z.number().min(0).max(1).default(0.05),
+        prizeText: z.string().optional(),
+        prizeClaimUrl: z.string().url().optional(),
       }))
       .mutation(async ({ input }) => {
         const id = await createSponsor({
@@ -59,6 +62,9 @@ export const appRouter = router({
           clickUrl: input.clickUrl,
           color: input.color,
           active: true,
+          goldenChance: input.goldenChance,
+          prizeText: input.prizeText ?? null,
+          prizeClaimUrl: input.prizeClaimUrl ?? null,
         });
         return { id };
       }),
@@ -73,6 +79,9 @@ export const appRouter = router({
         clickUrl: z.string().url().optional(),
         color: z.string().optional(),
         active: z.boolean().optional(),
+        goldenChance: z.number().min(0).max(1).optional(),
+        prizeText: z.string().optional().nullable(),
+        prizeClaimUrl: z.string().url().optional().nullable(),
       }))
       .mutation(async ({ input }) => {
         const { id, ...data } = input;
@@ -121,11 +130,20 @@ export const appRouter = router({
         }).optional(),
       }))
       .mutation(async ({ input }) => {
+        // Determine golden dart status server-side based on sponsor's goldenChance
+        let isGolden = false;
+        if (input.sponsorId) {
+          const sponsor = await getSponsorById(input.sponsorId);
+          if (sponsor && sponsor.goldenChance > 0) {
+            isGolden = Math.random() < sponsor.goldenChance;
+          }
+        }
         const id = await fireDart({
           sponsorId: input.sponsorId ?? null,
           sessionId: input.sessionId,
           shooterName: input.shooterName ?? null,
           trajectoryData: input.trajectoryData ?? null,
+          isGolden,
           firedAt: new Date(),
         });
         const dart = await getDartById(id);

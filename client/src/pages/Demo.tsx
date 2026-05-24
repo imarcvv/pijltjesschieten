@@ -64,6 +64,8 @@ export default function Demo() {
       sponsor: sponsor ? {
         id: sponsor.id, name: sponsor.name, logoUrl: sponsor.logoUrl,
         color: sponsor.color, message: sponsor.message, clickUrl: sponsor.clickUrl,
+        prizeText: (sponsor as any).prizeText ?? null,
+        prizeClaimUrl: (sponsor as any).prizeClaimUrl ?? null,
       } : null,
       startX, startY, angle, speed, spin, firedAt: Date.now(),
     };
@@ -72,12 +74,23 @@ export default function Demo() {
     setShotCount(n => n + 1);
     setShowTip(false);
 
-    fireDartMutation.mutate({
-      sponsorId: sponsor?.id,
-      sessionId: SESSION_ID,
-      shooterName: "Demo bezoeker",
-      trajectoryData: { startX, startY, angle, speed, spin },
-    });
+    fireDartMutation.mutate(
+      {
+        sponsorId: sponsor?.id,
+        sessionId: SESSION_ID,
+        shooterName: "Demo bezoeker",
+        trajectoryData: { startX, startY, angle, speed, spin },
+      },
+      {
+        onSuccess: (savedDart) => {
+          if (savedDart?.isGolden) {
+            setFlyingDarts(prev =>
+              prev.map(d => d.id === dartId ? { ...d, isGolden: true } : d)
+            );
+          }
+        },
+      }
+    );
   }, [getRandomSponsor, fireDartMutation]);
 
   const { state: blowState, level, error: blowError, start: startBlow, stop: stopBlow } = useBlowDetection({
@@ -100,7 +113,11 @@ export default function Demo() {
       />
 
       {selectedDart && (
-        <DartUnfoldModal sponsor={selectedDart.sponsor} onClose={() => setSelectedDart(null)} />
+        <DartUnfoldModal
+          sponsor={selectedDart.sponsor}
+          isGolden={selectedDart.isGolden}
+          onClose={() => setSelectedDart(null)}
+        />
       )}
 
       {/* ── Pijltjesschieten.nl control bar (floating, sticky top) ─────────── */}

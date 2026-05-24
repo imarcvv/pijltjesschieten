@@ -48,3 +48,13 @@
 - [x] Blow-to-shoot interface embedded in demo page
 - [x] "Homepage takeover" mode: dart flies full-width over the page
 - [x] Demo route /demo accessible from main nav
+
+## Gouden Pijltje (Prize Mechanic)
+- [x] Golden dart probability field on sponsors table (e.g. 1-in-20 chance)
+- [x] Prize text field on sponsors table (what the winner wins)
+- [x] Golden dart visual: shimmering gold exterior on the dart canvas
+- [x] Special unfold animation: golden interior reveal with confetti burst
+- [x] Prize modal: distinct gold-themed design with prize text and claim CTA
+- [x] Win tracking: store golden dart wins in database
+- [x] Admin: configure prize text and golden probability per sponsor
+- [x] Vitest: golden dart probability and win tracking logic

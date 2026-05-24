@@ -23,6 +23,9 @@ interface SponsorFormData {
   clickUrl: string;
   color: string;
   logoUrl?: string;
+  goldenChance: number;
+  prizeText: string;
+  prizeClaimUrl: string;
 }
 
 const EMPTY_FORM: SponsorFormData = {
@@ -30,6 +33,9 @@ const EMPTY_FORM: SponsorFormData = {
   message: "",
   clickUrl: "https://",
   color: "#e8d5a3",
+  goldenChance: 0.05,
+  prizeText: "",
+  prizeClaimUrl: "https://",
 };
 
 export default function Admin() {
@@ -96,6 +102,9 @@ export default function Admin() {
         message: form.message,
         clickUrl: form.clickUrl,
         color: form.color,
+        goldenChance: form.goldenChance,
+        prizeText: form.prizeText || null,
+        prizeClaimUrl: form.prizeClaimUrl && form.prizeClaimUrl !== "https://" ? form.prizeClaimUrl : null,
       });
       // Upload logo if changed
       if (logoFile) {
@@ -113,6 +122,9 @@ export default function Admin() {
         message: form.message,
         clickUrl: form.clickUrl,
         color: form.color,
+        goldenChance: form.goldenChance,
+        prizeText: form.prizeText || undefined,
+        prizeClaimUrl: form.prizeClaimUrl && form.prizeClaimUrl !== "https://" ? form.prizeClaimUrl : undefined,
       });
       // Upload logo if provided
       if (logoFile && id) {
@@ -134,6 +146,9 @@ export default function Admin() {
       clickUrl: sponsor.clickUrl,
       color: sponsor.color,
       logoUrl: sponsor.logoUrl,
+      goldenChance: sponsor.goldenChance ?? 0.05,
+      prizeText: sponsor.prizeText ?? "",
+      prizeClaimUrl: sponsor.prizeClaimUrl ?? "https://",
     });
     setLogoPreview(sponsor.logoUrl ?? null);
     setEditingId(sponsor.id);
@@ -206,11 +221,12 @@ export default function Admin() {
 
       <div className="container py-8 space-y-8">
         {/* Stats */}
-        {stats && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          {stats && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
               { label: "Totaal pijltjes", value: stats.total, emoji: "🎯" },
               { label: "Vandaag geschoten", value: stats.today, emoji: "🔥" },
+              { label: "Gouden pijltjes", value: (stats as any).golden ?? 0, emoji: "🏆" },
               { label: "Actieve sponsors", value: sponsors?.filter(s => s.active).length ?? 0, emoji: "🏷️" },
             ].map(stat => (
               <div key={stat.label} className="paper-card rounded-xl p-4 text-center">
@@ -333,6 +349,63 @@ export default function Admin() {
                     📎 Logo uploaden
                   </button>
                   <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoChange} />
+                </div>
+              </div>
+
+              {/* Golden Dart Section */}
+              <div className="rounded-xl p-4 space-y-3" style={{ background: "linear-gradient(135deg, rgba(255,215,0,0.1), rgba(200,169,110,0.15))", border: "2px solid rgba(255,215,0,0.4)" }}>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xl">🏆</span>
+                  <h3 className="font-display text-base" style={{ color: "#3d2800" }}>Gouden Pijltje Instellingen</h3>
+                </div>
+
+                {/* Golden chance slider */}
+                <div>
+                  <label className="font-retro text-xs uppercase tracking-wider block mb-1" style={{ color: "#5c3d1e" }}>
+                    Kans op gouden pijltje: <strong>{Math.round(form.goldenChance * 100)}%</strong>
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="0.5"
+                    step="0.01"
+                    value={form.goldenChance}
+                    onChange={e => setForm(f => ({ ...f, goldenChance: parseFloat(e.target.value) }))}
+                    className="w-full accent-amber-500"
+                  />
+                  <div className="flex justify-between font-retro text-xs opacity-50" style={{ color: "#8b6914" }}>
+                    <span>0% (geen)</span><span>50% (elk 2e pijltje)</span>
+                  </div>
+                </div>
+
+                {/* Prize text */}
+                <div>
+                  <label className="font-retro text-xs uppercase tracking-wider block mb-1" style={{ color: "#5c3d1e" }}>
+                    Prijs tekst
+                  </label>
+                  <input
+                    type="text"
+                    value={form.prizeText}
+                    onChange={e => setForm(f => ({ ...f, prizeText: e.target.value }))}
+                    placeholder="Bijv. Win €10 korting op je volgende bestelling!"
+                    className="w-full rounded-lg px-3 py-2 font-retro text-sm border-2 border-amber-300 bg-amber-50 focus:outline-none focus:border-amber-500"
+                    style={{ color: "#3d2800" }}
+                  />
+                </div>
+
+                {/* Prize claim URL */}
+                <div>
+                  <label className="font-retro text-xs uppercase tracking-wider block mb-1" style={{ color: "#5c3d1e" }}>
+                    Prijs claim URL
+                  </label>
+                  <input
+                    type="url"
+                    value={form.prizeClaimUrl}
+                    onChange={e => setForm(f => ({ ...f, prizeClaimUrl: e.target.value }))}
+                    placeholder="https://www.mijnmerk.nl/prijs"
+                    className="w-full rounded-lg px-3 py-2 font-retro text-sm border-2 border-amber-300 bg-amber-50 focus:outline-none focus:border-amber-500"
+                    style={{ color: "#3d2800" }}
+                  />
                 </div>
               </div>
 

@@ -62,6 +62,8 @@ export default function Home() {
         color: sponsor.color,
         message: sponsor.message,
         clickUrl: sponsor.clickUrl,
+        prizeText: (sponsor as any).prizeText ?? null,
+        prizeClaimUrl: (sponsor as any).prizeClaimUrl ?? null,
       } : null,
       startX,
       startY,
@@ -75,16 +77,29 @@ export default function Home() {
     setIsRolling(true);
     setTimeout(() => setIsRolling(false), 400);
 
+    // Add dart to arena immediately (optimistic), then update isGolden from server
     setFlyingDarts(prev => [...prev, newDart]);
     setTotalShots(n => n + 1);
 
-    // Persist to database
-    fireDartMutation.mutate({
-      sponsorId: sponsor?.id,
-      sessionId: SESSION_ID,
-      shooterName: shooterName || undefined,
-      trajectoryData,
-    });
+    // Persist to database — server determines golden status
+    fireDartMutation.mutate(
+      {
+        sponsorId: sponsor?.id,
+        sessionId: SESSION_ID,
+        shooterName: shooterName || undefined,
+        trajectoryData,
+      },
+      {
+        onSuccess: (savedDart) => {
+          if (savedDart?.isGolden) {
+            // Update the dart in the arena to show golden visuals
+            setFlyingDarts(prev =>
+              prev.map(d => d.id === dartId ? { ...d, isGolden: true } : d)
+            );
+          }
+        },
+      }
+    );
   }, [getRandomSponsor, shooterName, fireDartMutation]);
 
   const { state: blowState, level, error: blowError, start: startBlow } = useBlowDetection({
@@ -114,7 +129,15 @@ export default function Home() {
       {/* Dart click modal */}
       {selectedDart && (
         <DartUnfoldModal
-          sponsor={selectedDart.sponsor}
+          sponsor={selectedDart.sponsor
+            ? {
+                ...selectedDart.sponsor,
+                // Pass prize fields through if present on the sponsor object
+                ...(selectedDart.sponsor as any),
+              }
+            : null
+          }
+          isGolden={selectedDart.isGolden}
           onClose={() => setSelectedDart(null)}
         />
       )}
