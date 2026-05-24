@@ -22,21 +22,23 @@ interface PaperDartProps {
 }
 
 /**
- * Renders an authentic Dutch blowpipe dart:
- * - A long, very thin cone (sharp tip on left, wide open end on right)
- * - Made from a strip of glossy magazine paper rolled diagonally
- * - Diagonal colour/photo bands wrap around the cone like a barber pole
- * - Sponsor branding appears as one of the diagonal glossy bands
- * - Tip is dark/hardened (sealed with saliva on glossy paper)
- * - Golden variant: warm gold foil shimmer with pulsing glow
+ * Renders an authentic Dutch blowpipe dart as seen in the reference photos:
  *
- * Real proportions: ~20–25 cm long, ~1 cm wide at base → aspect ratio ~20:1
- * We render at whatever width×height is given but keep the cone very elongated.
+ * ANATOMY (from the photos):
+ * - A nearly CYLINDRICAL tube — uniform width along ~90% of its length
+ * - Only the very tip (leftmost ~8%) tapers to a sharp point
+ * - Made from a strip of glossy magazine paper (Veronica Gids, Wehkamp, etc.)
+ * - The magazine content (text, logos, colours) wraps HORIZONTALLY around the tube
+ * - Base colour is white/off-white with black printed text visible
+ * - Sponsor colour appears as a bold horizontal band/label on the body
+ * - 3D cylindrical shading: bright highlight along the top, shadow at the bottom
+ *
+ * The dart flies horizontally (tip pointing LEFT in the direction of travel).
  */
 export function PaperDart({
   sponsor,
   isGolden = false,
-  width = 160,
+  width = 180,
   height = 28,
   spinning = false,
   className = "",
@@ -68,196 +70,214 @@ export function PaperDart({
     }
   }, [sponsor?.logoUrl]);
 
-  // ── Colour palette derived from sponsor colour ──────────────────────────────
-  function getStripeColors(baseHex: string): string[] {
-    const c = hexToRgb(baseHex);
-    // Generate 4–5 glossy magazine-like colours: the sponsor colour + complementary tones
-    return [
-      `rgb(${c.r},${c.g},${c.b})`,
-      `rgb(${Math.min(255,c.r+60)},${Math.min(255,c.g+50)},${Math.min(255,c.b+40)})`,
-      `rgb(${Math.max(0,c.r-50)},${Math.max(0,c.g-40)},${Math.max(0,c.b-30)})`,
-      `rgb(${Math.min(255,c.r+30)},${Math.min(255,c.g+20)},${Math.max(0,c.b-20)})`,
-      `rgb(${Math.max(0,c.r-20)},${Math.min(255,c.g+40)},${Math.min(255,c.b+60)})`,
-    ];
-  }
-
-  const GOLDEN_STRIPES = [
-    "#8B6914", "#FFD700", "#C8A96E", "#FFA500", "#FFFACD",
-  ];
-
   function drawDart(ctx: CanvasRenderingContext2D, W: number, H: number, t: number) {
     ctx.clearRect(0, 0, W, H);
 
     // ── Geometry ──────────────────────────────────────────────────────────────
-    // The dart is a very elongated cone.
-    // Tip (sharp point) is at the LEFT. Wide open end is at the RIGHT.
-    const tipX = W * 0.02;           // sharp tip x
-    const tipY = H * 0.5;            // tip y (center)
-    const baseX = W * 0.97;          // wide end x
-    const halfBaseH = H * 0.46;      // half-height at the wide (tail) end
-    // The cone tapers linearly from halfBaseH at baseX to 0 at tipX
-    const coneLength = baseX - tipX;
+    // The dart is a cylinder with a short tapered tip on the LEFT.
+    // Tip point: leftmost pixel
+    // Cylinder body: from tipEndX to bodyEndX (the open tail end)
+    const tipX = W * 0.01;           // very tip of the point
+    const tipEndX = W * 0.10;        // where the taper ends and cylinder begins
+    const bodyEndX = W * 0.98;       // open tail end of the cylinder
+    const cy = H * 0.5;              // vertical centre
+    const r = H * 0.40;              // cylinder radius (half-height of body)
+    const tipR = H * 0.04;           // radius at the very tip (nearly zero)
 
-    // Helper: half-height of cone at a given x position
-    function halfH(x: number): number {
-      const t = (x - tipX) / coneLength;
-      return halfBaseH * t;
+    // ── Helper: radius at x position ──────────────────────────────────────────
+    function radiusAt(x: number): number {
+      if (x <= tipX) return tipR;
+      if (x >= tipEndX) return r;
+      // Linear taper from tipR to r over the tip section
+      const t = (x - tipX) / (tipEndX - tipX);
+      return tipR + (r - tipR) * t;
     }
 
-    // ── Clip path (cone outline) ───────────────────────────────────────────
+    // ── Clip to dart silhouette ────────────────────────────────────────────────
     ctx.save();
     ctx.beginPath();
-    ctx.moveTo(tipX, tipY);
-    ctx.lineTo(baseX, tipY - halfBaseH);
-    ctx.lineTo(baseX, tipY + halfBaseH);
+    // Tip point
+    ctx.moveTo(tipX, cy);
+    // Top edge: taper then straight cylinder top
+    ctx.lineTo(tipEndX, cy - r);
+    ctx.lineTo(bodyEndX, cy - r);
+    // Tail end: flat open circle (rectangle in 2D)
+    ctx.lineTo(bodyEndX, cy + r);
+    // Bottom edge back to tip
+    ctx.lineTo(tipEndX, cy + r);
     ctx.closePath();
     ctx.clip();
 
-    // ── Background: base paper colour ────────────────────────────────────────
-    const baseColor = sponsor?.color ?? "#e8d5a3";
-    const stripeColors = isGolden ? GOLDEN_STRIPES : getStripeColors(baseColor);
+    // ── Base: white/off-white magazine paper ──────────────────────────────────
+    ctx.fillStyle = isGolden ? "#FFF8E7" : "#F8F5EF";
+    ctx.fillRect(0, 0, W, H);
 
-    // Fill whole cone with first stripe colour as base
-    ctx.fillStyle = stripeColors[0];
-    ctx.fillRect(tipX, tipY - halfBaseH, coneLength, halfBaseH * 2);
-
-    // ── Diagonal glossy magazine strips ──────────────────────────────────────
-    // Each strip is a diagonal band running at ~30° across the cone,
-    // simulating the magazine page wrapped diagonally around the paper tube.
-    // Strip width in x-axis: ~15% of cone length
-    const stripeW = coneLength * 0.18;
-    const numStripes = Math.ceil(coneLength / stripeW) + 2;
-    const diagonalSlant = halfBaseH * 1.4; // how much each stripe shifts vertically
-
-    for (let i = -1; i < numStripes; i++) {
-      const xLeft = tipX + i * stripeW;
-      const xRight = xLeft + stripeW;
-      const colorIdx = ((i % stripeColors.length) + stripeColors.length) % stripeColors.length;
-
-      // Each stripe is a parallelogram: slanted diagonally
-      ctx.beginPath();
-      ctx.moveTo(xLeft,  tipY - halfH(xLeft)  - diagonalSlant * 0.5);
-      ctx.lineTo(xRight, tipY - halfH(xRight) - diagonalSlant * 0.5);
-      ctx.lineTo(xRight, tipY + halfH(xRight) + diagonalSlant * 0.5);
-      ctx.lineTo(xLeft,  tipY + halfH(xLeft)  + diagonalSlant * 0.5);
-      ctx.closePath();
-
-      // Glossy gradient per stripe
-      const grad = ctx.createLinearGradient(xLeft, tipY - halfBaseH, xLeft, tipY + halfBaseH);
-      const sc = stripeColors[colorIdx];
-      grad.addColorStop(0,   lighten(sc, 0.35));
-      grad.addColorStop(0.3, sc);
-      grad.addColorStop(0.7, darken(sc, 0.2));
-      grad.addColorStop(1,   darken(sc, 0.4));
-      ctx.fillStyle = grad;
-      ctx.fill();
-
-      // Glossy sheen highlight on each stripe
-      const sheen = ctx.createLinearGradient(xLeft, tipY - halfBaseH, xLeft + stripeW * 0.4, tipY);
-      sheen.addColorStop(0, "rgba(255,255,255,0.35)");
-      sheen.addColorStop(1, "rgba(255,255,255,0)");
-      ctx.fillStyle = sheen;
-      ctx.fill();
+    // ── Magazine content bands — horizontal text-like stripes ─────────────────
+    // These simulate the printed content of the magazine page wrapped around the tube.
+    // They run horizontally (parallel to the dart axis) at different vertical positions.
+    const bands = generateMagazineBands(W, H, sponsor?.color ?? "#e8d5a3", isGolden);
+    for (const band of bands) {
+      ctx.fillStyle = band.color;
+      ctx.fillRect(band.x, cy - r + band.yOffset, band.width, band.height);
     }
 
-    // ── Sponsor branding strip ────────────────────────────────────────────────
-    // One of the diagonal bands is the sponsor's brand strip
-    if (sponsor) {
-      const brandX = tipX + coneLength * 0.42; // position brand in middle-ish
-      const brandW = stripeW * 1.4;
-
+    // ── Simulated printed text lines on the body ──────────────────────────────
+    // Small horizontal text-like marks, like the Veronica Gids programme listings
+    if (!isGolden) {
       ctx.save();
-      // Clip to the brand strip parallelogram
-      ctx.beginPath();
-      ctx.moveTo(brandX,         tipY - halfH(brandX)         - diagonalSlant * 0.5);
-      ctx.lineTo(brandX + brandW, tipY - halfH(brandX + brandW) - diagonalSlant * 0.5);
-      ctx.lineTo(brandX + brandW, tipY + halfH(brandX + brandW) + diagonalSlant * 0.5);
-      ctx.lineTo(brandX,         tipY + halfH(brandX)         + diagonalSlant * 0.5);
-      ctx.closePath();
-      ctx.clip();
-
-      const logoImg = logoImgRef.current;
-      if (logoImg && logoLoadedRef.current) {
-        // Draw logo image filling the brand strip
-        const lH = halfH(brandX + brandW * 0.5) * 2.2;
-        const lW = lH * (logoImg.naturalWidth / logoImg.naturalHeight);
-        ctx.globalAlpha = 0.92;
-        ctx.drawImage(
-          logoImg,
-          brandX + brandW * 0.5 - lW * 0.5,
-          tipY - lH * 0.5,
-          lW,
-          lH
-        );
-      } else {
-        // Fallback: sponsor name text
-        const midX = brandX + brandW * 0.5;
-        const midH = halfH(midX);
-        const fontSize = Math.max(6, midH * 0.8);
-        ctx.font = `bold ${fontSize}px 'Fredoka One', cursive`;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillStyle = "rgba(0,0,0,0.5)";
-        ctx.fillText(sponsor.name.toUpperCase(), midX + 0.5, tipY + 0.5);
-        ctx.fillStyle = "rgba(255,255,255,0.95)";
-        ctx.fillText(sponsor.name.toUpperCase(), midX, tipY);
+      ctx.globalAlpha = 0.25;
+      const lineY = [0.25, 0.42, 0.58, 0.75];
+      for (const ly of lineY) {
+        const y = cy - r + (r * 2) * ly;
+        // Draw small text-like dashes
+        for (let x = tipEndX + 8; x < bodyEndX - 10; x += 14 + Math.sin(x * 0.3) * 4) {
+          const lineW = 6 + Math.sin(x * 0.7) * 4;
+          ctx.fillStyle = "#222";
+          ctx.fillRect(x, y - 0.5, lineW, 1);
+        }
       }
       ctx.restore();
     }
 
-    // ── Golden foil shimmer overlay ───────────────────────────────────────────
+    // ── Sponsor colour band ───────────────────────────────────────────────────
+    // A bold horizontal coloured band — like the red FOX logo band in the photo
+    const sponsorColor = isGolden ? "#FFD700" : (sponsor?.color ?? "#e8520a");
+    const bandY = cy - r * 0.35;
+    const bandH = r * 0.7;
+    const bandX = tipEndX + (bodyEndX - tipEndX) * 0.25;
+    const bandW = (bodyEndX - tipEndX) * 0.45;
+
+    const sponsorBandGrad = ctx.createLinearGradient(bandX, bandY, bandX, bandY + bandH);
+    sponsorBandGrad.addColorStop(0, lighten(sponsorColor, 0.2));
+    sponsorBandGrad.addColorStop(0.4, sponsorColor);
+    sponsorBandGrad.addColorStop(1, darken(sponsorColor, 0.25));
+    ctx.fillStyle = sponsorBandGrad;
+    ctx.fillRect(bandX, bandY, bandW, bandH);
+
+    // ── Sponsor name or logo on the band ─────────────────────────────────────
+    const logoImg = logoImgRef.current;
+    if (logoImg && logoLoadedRef.current) {
+      const lH = bandH * 0.85;
+      const lW = lH * (logoImg.naturalWidth / logoImg.naturalHeight);
+      const lX = bandX + bandW * 0.5 - lW * 0.5;
+      const lY = bandY + bandH * 0.5 - lH * 0.5;
+      ctx.save();
+      ctx.globalAlpha = 0.92;
+      ctx.drawImage(logoImg, lX, lY, lW, lH);
+      ctx.restore();
+    } else if (sponsor?.name) {
+      const fontSize = Math.max(5, bandH * 0.65);
+      ctx.save();
+      ctx.font = `bold ${fontSize}px 'Fredoka One', 'Arial Narrow', Arial, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      // Shadow
+      ctx.fillStyle = "rgba(0,0,0,0.3)";
+      ctx.fillText(
+        sponsor.name.toUpperCase().slice(0, 10),
+        bandX + bandW * 0.5 + 0.5,
+        bandY + bandH * 0.5 + 0.5
+      );
+      // Text
+      ctx.fillStyle = isTextDark(sponsorColor) ? "rgba(255,255,255,0.95)" : "rgba(0,0,0,0.85)";
+      ctx.fillText(
+        sponsor.name.toUpperCase().slice(0, 10),
+        bandX + bandW * 0.5,
+        bandY + bandH * 0.5
+      );
+      ctx.restore();
+    }
+
+    // ── 3D cylindrical shading ────────────────────────────────────────────────
+    // Top highlight: bright white streak along the top edge (light source above)
+    const highlightGrad = ctx.createLinearGradient(0, cy - r, 0, cy - r * 0.3);
+    highlightGrad.addColorStop(0, "rgba(255,255,255,0.75)");
+    highlightGrad.addColorStop(0.5, "rgba(255,255,255,0.25)");
+    highlightGrad.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = highlightGrad;
+    ctx.fillRect(tipEndX, cy - r, bodyEndX - tipEndX, r * 0.7);
+
+    // Bottom shadow: dark gradient along the bottom edge
+    const shadowGrad = ctx.createLinearGradient(0, cy + r * 0.3, 0, cy + r);
+    shadowGrad.addColorStop(0, "rgba(0,0,0,0)");
+    shadowGrad.addColorStop(0.5, "rgba(0,0,0,0.12)");
+    shadowGrad.addColorStop(1, "rgba(0,0,0,0.35)");
+    ctx.fillStyle = shadowGrad;
+    ctx.fillRect(tipEndX, cy + r * 0.3, bodyEndX - tipEndX, r * 0.7);
+
+    // ── Golden shimmer overlay ────────────────────────────────────────────────
     if (isGolden) {
-      const shimmer = ctx.createLinearGradient(tipX, tipY - halfBaseH, baseX, tipY + halfBaseH);
-      const pulse = 0.15 + 0.1 * Math.sin(t * 2.5);
-      shimmer.addColorStop(0,   `rgba(255,215,0,0)`);
+      const pulse = 0.12 + 0.08 * Math.sin(t * 2.5);
+      const shimmer = ctx.createLinearGradient(tipEndX, 0, bodyEndX, 0);
+      shimmer.addColorStop(0, `rgba(255,215,0,0)`);
       shimmer.addColorStop(0.3, `rgba(255,235,100,${pulse})`);
-      shimmer.addColorStop(0.6, `rgba(255,215,0,${pulse * 0.8})`);
-      shimmer.addColorStop(1,   `rgba(255,215,0,0)`);
+      shimmer.addColorStop(0.7, `rgba(255,215,0,${pulse * 0.7})`);
+      shimmer.addColorStop(1, `rgba(255,215,0,0)`);
       ctx.fillStyle = shimmer;
-      ctx.fillRect(tipX, tipY - halfBaseH, coneLength, halfBaseH * 2);
+      ctx.fillRect(tipEndX, cy - r, bodyEndX - tipEndX, r * 2);
     }
 
     ctx.restore(); // end clip
 
-    // ── Tip: dark hardened point (sealed with saliva) ─────────────────────────
+    // ── Tip: dark hardened point ──────────────────────────────────────────────
+    // The tip is sealed with saliva on the glossy paper — it looks dark/shiny
     ctx.save();
-    const tipLen = coneLength * 0.08;
-    const tipGrad = ctx.createLinearGradient(tipX, 0, tipX + tipLen, 0);
+    const tipClip = new Path2D();
+    tipClip.moveTo(tipX, cy);
+    tipClip.lineTo(tipEndX, cy - radiusAt(tipEndX));
+    tipClip.lineTo(tipEndX, cy + radiusAt(tipEndX));
+    tipClip.closePath();
+    ctx.clip(tipClip);
+
+    const tipGrad = ctx.createLinearGradient(tipX, 0, tipEndX, 0);
     tipGrad.addColorStop(0, "#1a0f00");
-    tipGrad.addColorStop(0.5, "#3d2800");
-    tipGrad.addColorStop(1, "rgba(61,40,0,0)");
-    ctx.beginPath();
-    ctx.moveTo(tipX, tipY);
-    ctx.lineTo(tipX + tipLen, tipY - halfH(tipX + tipLen));
-    ctx.lineTo(tipX + tipLen, tipY + halfH(tipX + tipLen));
-    ctx.closePath();
+    tipGrad.addColorStop(0.4, "#3d2800");
+    tipGrad.addColorStop(0.8, "#6b4c1e");
+    tipGrad.addColorStop(1, "rgba(107,76,30,0)");
     ctx.fillStyle = tipGrad;
-    ctx.fill();
+    ctx.fillRect(tipX, 0, tipEndX - tipX, H);
+
+    // Tip highlight (glossy sealed paper)
+    const tipHighlight = ctx.createLinearGradient(tipX, cy - r, tipX, cy);
+    tipHighlight.addColorStop(0, "rgba(255,255,255,0.3)");
+    tipHighlight.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = tipHighlight;
+    ctx.fillRect(tipX, 0, tipEndX - tipX, H);
     ctx.restore();
 
-    // ── Outline (subtle shadow edge) ──────────────────────────────────────────
+    // ── Outline ───────────────────────────────────────────────────────────────
     ctx.save();
     ctx.beginPath();
-    ctx.moveTo(tipX, tipY);
-    ctx.lineTo(baseX, tipY - halfBaseH);
-    ctx.moveTo(tipX, tipY);
-    ctx.lineTo(baseX, tipY + halfBaseH);
-    ctx.strokeStyle = "rgba(0,0,0,0.18)";
-    ctx.lineWidth = 0.8;
+    ctx.moveTo(tipX, cy);
+    ctx.lineTo(tipEndX, cy - r);
+    ctx.lineTo(bodyEndX, cy - r);
+    ctx.moveTo(tipX, cy);
+    ctx.lineTo(tipEndX, cy + r);
+    ctx.lineTo(bodyEndX, cy + r);
+    ctx.strokeStyle = "rgba(0,0,0,0.2)";
+    ctx.lineWidth = 0.7;
+    ctx.stroke();
+    // Tail end cap
+    ctx.beginPath();
+    ctx.moveTo(bodyEndX, cy - r);
+    ctx.lineTo(bodyEndX, cy + r);
+    ctx.strokeStyle = "rgba(0,0,0,0.15)";
     ctx.stroke();
     ctx.restore();
 
-    // ── Golden glow (outside clip) ────────────────────────────────────────────
+    // ── Golden glow ───────────────────────────────────────────────────────────
     if (isGolden) {
       ctx.save();
-      ctx.shadowColor = `rgba(255,215,0,${0.6 + 0.3 * Math.sin(t * 2.5)})`;
-      ctx.shadowBlur = 10 + 5 * Math.sin(t * 2.5);
-      ctx.strokeStyle = "rgba(255,215,0,0.5)";
+      ctx.shadowColor = `rgba(255,215,0,${0.5 + 0.25 * Math.sin(t * 2.5)})`;
+      ctx.shadowBlur = 8 + 4 * Math.sin(t * 2.5);
+      ctx.strokeStyle = "rgba(255,215,0,0.4)";
       ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.moveTo(tipX, tipY);
-      ctx.lineTo(baseX, tipY - halfBaseH);
-      ctx.lineTo(baseX, tipY + halfBaseH);
+      ctx.moveTo(tipX, cy);
+      ctx.lineTo(tipEndX, cy - r);
+      ctx.lineTo(bodyEndX, cy - r);
+      ctx.lineTo(bodyEndX, cy + r);
+      ctx.lineTo(tipEndX, cy + r);
       ctx.closePath();
       ctx.stroke();
       ctx.restore();
@@ -302,38 +322,78 @@ export function PaperDart({
   );
 }
 
-// ── Colour helpers ─────────────────────────────────────────────────────────────
-function hexToRgb(hex: string): { r: number; g: number; b: number } {
-  const clean = hex.replace("#", "");
-  const full = clean.length === 3
-    ? clean.split("").map(c => c + c).join("")
-    : clean;
-  const num = parseInt(full, 16);
-  return {
-    r: Math.min(255, Math.max(0, (num >> 16) & 0xff)),
-    g: Math.min(255, Math.max(0, (num >> 8) & 0xff)),
-    b: Math.min(255, Math.max(0, num & 0xff)),
-  };
+// ── Magazine band generator ────────────────────────────────────────────────────
+// Generates horizontal coloured bands that simulate the magazine page content
+// visible when the paper is wrapped around the cylinder.
+interface Band {
+  x: number;
+  yOffset: number;
+  width: number;
+  height: number;
+  color: string;
 }
 
-function lighten(color: string, amount: number): string {
-  if (color.startsWith("rgb")) {
-    const m = color.match(/\d+/g);
-    if (!m) return color;
-    const [r, g, b] = m.map(Number);
-    return `rgb(${Math.min(255,r+Math.round(255*amount))},${Math.min(255,g+Math.round(255*amount))},${Math.min(255,b+Math.round(255*amount))})`;
+function generateMagazineBands(W: number, H: number, sponsorColor: string, isGolden: boolean): Band[] {
+  const r = H * 0.40;
+  const bands: Band[] = [];
+
+  if (isGolden) {
+    // Golden: warm gold stripes
+    const goldenColors = ["#FFD700", "#FFA500", "#C8A96E", "#FFE066", "#8B6914"];
+    for (let i = 0; i < 5; i++) {
+      bands.push({
+        x: 0, yOffset: (r * 2 / 5) * i,
+        width: W, height: r * 2 / 5,
+        color: goldenColors[i % goldenColors.length],
+      });
+    }
+  } else {
+    // Normal: white base with thin coloured accent bands (like Veronica Gids)
+    // Thin red/orange accent stripe near top
+    bands.push({ x: 0, yOffset: 0, width: W, height: r * 0.18, color: lighten(sponsorColor, 0.3) });
+    // Thin accent stripe near bottom
+    bands.push({ x: 0, yOffset: r * 1.82, width: W, height: r * 0.18, color: lighten(sponsorColor, 0.15) });
+    // Very thin black text-area lines at 1/3 and 2/3 height
+    bands.push({ x: 0, yOffset: r * 0.55, width: W, height: r * 0.08, color: "rgba(0,0,0,0.06)" });
+    bands.push({ x: 0, yOffset: r * 1.1, width: W, height: r * 0.08, color: "rgba(0,0,0,0.06)" });
   }
-  return color;
+
+  return bands;
+}
+
+// ── Colour helpers ─────────────────────────────────────────────────────────────
+function lighten(color: string, amount: number): string {
+  const rgb = parseColor(color);
+  if (!rgb) return color;
+  return `rgb(${Math.min(255,rgb[0]+Math.round(255*amount))},${Math.min(255,rgb[1]+Math.round(255*amount))},${Math.min(255,rgb[2]+Math.round(255*amount))})`;
 }
 
 function darken(color: string, amount: number): string {
+  const rgb = parseColor(color);
+  if (!rgb) return color;
+  return `rgb(${Math.max(0,rgb[0]-Math.round(255*amount))},${Math.max(0,rgb[1]-Math.round(255*amount))},${Math.max(0,rgb[2]-Math.round(255*amount))})`;
+}
+
+function parseColor(color: string): [number,number,number] | null {
+  if (color.startsWith("#")) {
+    const clean = color.replace("#", "");
+    const full = clean.length === 3 ? clean.split("").map(c => c+c).join("") : clean;
+    const num = parseInt(full, 16);
+    return [(num >> 16) & 0xff, (num >> 8) & 0xff, num & 0xff];
+  }
   if (color.startsWith("rgb")) {
     const m = color.match(/\d+/g);
-    if (!m) return color;
-    const [r, g, b] = m.map(Number);
-    return `rgb(${Math.max(0,r-Math.round(255*amount))},${Math.max(0,g-Math.round(255*amount))},${Math.max(0,b-Math.round(255*amount))})`;
+    if (m && m.length >= 3) return [Number(m[0]), Number(m[1]), Number(m[2])];
   }
-  return color;
+  return null;
+}
+
+function isTextDark(color: string): boolean {
+  const rgb = parseColor(color);
+  if (!rgb) return false;
+  // Perceived luminance
+  const lum = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2];
+  return lum < 140;
 }
 
 export default PaperDart;

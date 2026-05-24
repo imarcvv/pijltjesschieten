@@ -68,3 +68,14 @@
 - [x] Flat strip reveals sponsor ad/message as if it were the original magazine page
 - [x] Glossy sheen effect on the flat strip (CSS gradient highlight)
 - [x] Update all dart sizes/proportions to match real dart aspect ratio (long and thin cone)
+
+## Dart Visual v3 (Cylindrical — Correct Anatomy)
+- [x] PaperDart: cylindrical tube shape (uniform width, NOT a cone)
+- [x] Very short sharp tip at the left end only
+- [x] Horizontal magazine text/content wrapping around the cylinder body
+- [x] White/light base color with black printed text (like Veronica Gids)
+- [x] Red/orange sponsor color accent band on the cylinder
+- [x] Sponsor name/logo as a printed label on the cylinder
+- [x] Cylindrical 3D shading (top highlight, bottom shadow, curved surface)
+- [x] DartUnfoldModal: unroll from cylinder to flat horizontal magazine strip
+- [x] Update all dart sizes to match cylinder proportions across all pages
