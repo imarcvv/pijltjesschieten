@@ -81,23 +81,23 @@
 - [x] Update all dart sizes to match cylinder proportions across all pages
 
 ## Hyves/Startpagina Redesign (Early-2000s Dutch Web)
-- [ ] Global CSS: Verdana/Tahoma as primary fonts (no Google Fonts)
-- [ ] Colour palette: Hyves blue (#4a7ab5 headers), orange (#f5a623 accents), yellow (#fff3a0 highlights), white body
-- [ ] Bordered panel boxes with blue header bars (like Startpagina.nl widget boxes)
-- [ ] Beveled/raised button style (classic HTML button look)
-- [ ] Smiley/emoji icons in section headers (Hyves style)
-- [ ] Dense information layout with small text (Verdana 11px like the era)
-- [ ] Top navigation bar in Hyves blue with white text links
-- [ ] Orange gradient banner/header area
-- [ ] Home.tsx: full Hyves/Startpagina panel layout
-- [ ] Demo.tsx: retro style applied to NU.nl mock
-- [ ] Admin.tsx: retro style applied to admin panel
+- [x] Global CSS: Verdana/Tahoma as primary fonts (no Google Fonts)
+- [x] Colour palette: Hyves blue (#4a7ab5 headers), orange (#f5a623 accents), yellow (#fff3a0 highlights), white body
+- [x] Bordered panel boxes with blue header bars (like Startpagina.nl widget boxes)
+- [x] Beveled/raised button style (classic HTML button look)
+- [x] Smiley/emoji icons in section headers (Hyves style)
+- [x] Dense information layout with small text (Verdana 11px like the era)
+- [x] Top navigation bar in Hyves blue with white text links
+- [x] Orange gradient banner/header area
+- [x] Home.tsx: full Hyves/Startpagina panel layout
+- [x] Demo.tsx: retro style applied to NU.nl mock
+- [x] Admin.tsx: retro style applied to admin panel
 
 ## Photo-Realistic Dart Image
-- [ ] Upload pijltje.png as webdev static asset
-- [ ] Rewrite PaperDart to use photo image instead of canvas drawing
-- [ ] CSS colour tinting per sponsor (hue-rotate + sepia + saturate filters)
-- [ ] Golden dart: gold CSS filter overlay
-- [ ] Spinning animation during flight using the photo image
-- [ ] Update DartArena to use new image-based dart
-- [ ] Update DartGallery to use new image-based dart
+- [x] Upload pijltje.png as webdev static asset
+- [x] Rewrite PaperDart to use photo image instead of canvas drawing
+- [x] CSS colour tinting per sponsor (hue-rotate + sepia + saturate filters)
+- [x] Golden dart: gold CSS filter overlay
+- [x] Spinning animation during flight using the photo image
+- [x] Update DartArena to use new image-based dart
+- [x] Update DartGallery to use new image-based dart
