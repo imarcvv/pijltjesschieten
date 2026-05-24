@@ -128,7 +128,7 @@ export default function Demo() {
         {/* Logo */}
         <Link href="/">
           <div className="flex items-center gap-2 cursor-pointer">
-            <PaperDart width={50} height={18} />
+            <PaperDart width={60} height={12} />
             <span className="font-display text-white text-sm hidden sm:block" style={{ letterSpacing: "0.02em" }}>
               Pijltjesschieten.nl
             </span>

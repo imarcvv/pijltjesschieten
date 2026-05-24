@@ -22,221 +22,246 @@ interface PaperDartProps {
 }
 
 /**
- * Renders a paper dart using Canvas — a cone/cylinder shape with
- * twisted paper stripes and sponsor branding wrapped around the body.
- * If a logoUrl is provided, the logo is drawn on the dart body with
- * a slight wave/skew to simulate being printed on rolled paper.
+ * Renders an authentic Dutch blowpipe dart:
+ * - A long, very thin cone (sharp tip on left, wide open end on right)
+ * - Made from a strip of glossy magazine paper rolled diagonally
+ * - Diagonal colour/photo bands wrap around the cone like a barber pole
+ * - Sponsor branding appears as one of the diagonal glossy bands
+ * - Tip is dark/hardened (sealed with saliva on glossy paper)
+ * - Golden variant: warm gold foil shimmer with pulsing glow
+ *
+ * Real proportions: ~20–25 cm long, ~1 cm wide at base → aspect ratio ~20:1
+ * We render at whatever width×height is given but keep the cone very elongated.
  */
-export function PaperDart({ sponsor, isGolden = false, width = 120, height = 40, spinning = false, className = "", scale = 1 }: PaperDartProps) {
+export function PaperDart({
+  sponsor,
+  isGolden = false,
+  width = 160,
+  height = 28,
+  spinning = false,
+  className = "",
+  scale = 1,
+}: PaperDartProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animFrameRef = useRef<number>(0);
   const angleRef = useRef(0);
   const logoImgRef = useRef<HTMLImageElement | null>(null);
   const logoLoadedRef = useRef(false);
 
-  const dartColor = sponsor?.color ?? "#e8d5a3";
-
-  // Pre-load logo image when sponsor changes
+  // Pre-load sponsor logo
   useEffect(() => {
     logoLoadedRef.current = false;
     logoImgRef.current = null;
-
     if (sponsor?.logoUrl) {
       const img = new Image();
       img.crossOrigin = "anonymous";
       img.onload = () => {
         logoImgRef.current = img;
         logoLoadedRef.current = true;
-        // Trigger a redraw if not spinning
         if (!spinning && canvasRef.current) {
           const ctx = canvasRef.current.getContext("2d");
-          if (ctx) drawDartFn(ctx, canvasRef.current.width, canvasRef.current.height, 0);
+          if (ctx) drawDart(ctx, canvasRef.current.width, canvasRef.current.height, 0);
         }
       };
-      img.onerror = () => {
-        logoImgRef.current = null;
-        logoLoadedRef.current = false;
-      };
+      img.onerror = () => { logoImgRef.current = null; logoLoadedRef.current = false; };
       img.src = sponsor.logoUrl;
     }
   }, [sponsor?.logoUrl]);
 
-  function drawDartFn(ctx: CanvasRenderingContext2D, W: number, H: number, spinAngle: number) {
+  // ── Colour palette derived from sponsor colour ──────────────────────────────
+  function getStripeColors(baseHex: string): string[] {
+    const c = hexToRgb(baseHex);
+    // Generate 4–5 glossy magazine-like colours: the sponsor colour + complementary tones
+    return [
+      `rgb(${c.r},${c.g},${c.b})`,
+      `rgb(${Math.min(255,c.r+60)},${Math.min(255,c.g+50)},${Math.min(255,c.b+40)})`,
+      `rgb(${Math.max(0,c.r-50)},${Math.max(0,c.g-40)},${Math.max(0,c.b-30)})`,
+      `rgb(${Math.min(255,c.r+30)},${Math.min(255,c.g+20)},${Math.max(0,c.b-20)})`,
+      `rgb(${Math.max(0,c.r-20)},${Math.min(255,c.g+40)},${Math.min(255,c.b+60)})`,
+    ];
+  }
+
+  const GOLDEN_STRIPES = [
+    "#8B6914", "#FFD700", "#C8A96E", "#FFA500", "#FFFACD",
+  ];
+
+  function drawDart(ctx: CanvasRenderingContext2D, W: number, H: number, t: number) {
     ctx.clearRect(0, 0, W, H);
 
-    const tipX = W * 0.05;
-    const tipY = H / 2;
-    const bodyStart = W * 0.12;
-    const bodyEnd = W * 0.88;
-    const bodyRadius = H * 0.38;
-    const tailRadius = H * 0.28;
+    // ── Geometry ──────────────────────────────────────────────────────────────
+    // The dart is a very elongated cone.
+    // Tip (sharp point) is at the LEFT. Wide open end is at the RIGHT.
+    const tipX = W * 0.02;           // sharp tip x
+    const tipY = H * 0.5;            // tip y (center)
+    const baseX = W * 0.97;          // wide end x
+    const halfBaseH = H * 0.46;      // half-height at the wide (tail) end
+    // The cone tapers linearly from halfBaseH at baseX to 0 at tipX
+    const coneLength = baseX - tipX;
 
-    // ── Shadow ────────────────────────────────────────────────────────────
-    ctx.save();
-    ctx.shadowColor = "rgba(0,0,0,0.25)";
-    ctx.shadowBlur = 6;
-    ctx.shadowOffsetY = 3;
-
-    // ── Dart body (tapered cone shape) ────────────────────────────────────
-    const gradient = ctx.createLinearGradient(bodyStart, tipY - bodyRadius, bodyStart, tipY + bodyRadius);
-    const baseColor = isGolden ? { r: 200, g: 169, b: 110 } : hexToRgb(dartColor);
-    if (isGolden) {
-      // Gold shimmer gradient
-      gradient.addColorStop(0, "#8B6914");
-      gradient.addColorStop(0.25, "#C8A96E");
-      gradient.addColorStop(0.5, "#FFD700");
-      gradient.addColorStop(0.75, "#FFA500");
-      gradient.addColorStop(1, "#8B6914");
-    } else {
-      gradient.addColorStop(0, `rgba(${Math.min(255, baseColor.r + 40)},${Math.min(255, baseColor.g + 30)},${Math.min(255, baseColor.b + 20)},1)`);
-      gradient.addColorStop(0.3, `rgba(${baseColor.r},${baseColor.g},${baseColor.b},1)`);
-      gradient.addColorStop(0.7, `rgba(${Math.max(0, baseColor.r - 20)},${Math.max(0, baseColor.g - 15)},${Math.max(0, baseColor.b - 10)},1)`);
-      gradient.addColorStop(1, `rgba(${Math.max(0, baseColor.r - 40)},${Math.max(0, baseColor.g - 30)},${Math.max(0, baseColor.b - 20)},1)`);
+    // Helper: half-height of cone at a given x position
+    function halfH(x: number): number {
+      const t = (x - tipX) / coneLength;
+      return halfBaseH * t;
     }
 
+    // ── Clip path (cone outline) ───────────────────────────────────────────
+    ctx.save();
     ctx.beginPath();
     ctx.moveTo(tipX, tipY);
-    ctx.quadraticCurveTo(bodyStart, tipY - bodyRadius * 0.5, bodyStart + W * 0.1, tipY - bodyRadius);
-    ctx.lineTo(bodyEnd, tipY - tailRadius);
-    ctx.lineTo(bodyEnd, tipY + tailRadius);
-    ctx.lineTo(bodyStart + W * 0.1, tipY + bodyRadius);
-    ctx.quadraticCurveTo(bodyStart, tipY + bodyRadius * 0.5, tipX, tipY);
-    ctx.fillStyle = gradient;
-    ctx.fill();
-    ctx.restore();
+    ctx.lineTo(baseX, tipY - halfBaseH);
+    ctx.lineTo(baseX, tipY + halfBaseH);
+    ctx.closePath();
+    ctx.clip();
 
-    // ── Golden glow outline ───────────────────────────────────────────────
-    if (isGolden) {
-      ctx.save();
-      ctx.shadowColor = "rgba(255,215,0,0.9)";
-      ctx.shadowBlur = 12 + Math.sin(spinAngle * 3) * 4;
-      ctx.strokeStyle = "rgba(255,215,0,0.7)";
-      ctx.lineWidth = 2;
+    // ── Background: base paper colour ────────────────────────────────────────
+    const baseColor = sponsor?.color ?? "#e8d5a3";
+    const stripeColors = isGolden ? GOLDEN_STRIPES : getStripeColors(baseColor);
+
+    // Fill whole cone with first stripe colour as base
+    ctx.fillStyle = stripeColors[0];
+    ctx.fillRect(tipX, tipY - halfBaseH, coneLength, halfBaseH * 2);
+
+    // ── Diagonal glossy magazine strips ──────────────────────────────────────
+    // Each strip is a diagonal band running at ~30° across the cone,
+    // simulating the magazine page wrapped diagonally around the paper tube.
+    // Strip width in x-axis: ~15% of cone length
+    const stripeW = coneLength * 0.18;
+    const numStripes = Math.ceil(coneLength / stripeW) + 2;
+    const diagonalSlant = halfBaseH * 1.4; // how much each stripe shifts vertically
+
+    for (let i = -1; i < numStripes; i++) {
+      const xLeft = tipX + i * stripeW;
+      const xRight = xLeft + stripeW;
+      const colorIdx = ((i % stripeColors.length) + stripeColors.length) % stripeColors.length;
+
+      // Each stripe is a parallelogram: slanted diagonally
       ctx.beginPath();
-      ctx.moveTo(tipX, tipY);
-      ctx.quadraticCurveTo(bodyStart, tipY - bodyRadius * 0.5, bodyStart + W * 0.1, tipY - bodyRadius);
-      ctx.lineTo(bodyEnd, tipY - tailRadius);
-      ctx.lineTo(bodyEnd, tipY + tailRadius);
-      ctx.lineTo(bodyStart + W * 0.1, tipY + bodyRadius);
-      ctx.quadraticCurveTo(bodyStart, tipY + bodyRadius * 0.5, tipX, tipY);
-      ctx.stroke();
-      ctx.restore();
+      ctx.moveTo(xLeft,  tipY - halfH(xLeft)  - diagonalSlant * 0.5);
+      ctx.lineTo(xRight, tipY - halfH(xRight) - diagonalSlant * 0.5);
+      ctx.lineTo(xRight, tipY + halfH(xRight) + diagonalSlant * 0.5);
+      ctx.lineTo(xLeft,  tipY + halfH(xLeft)  + diagonalSlant * 0.5);
+      ctx.closePath();
+
+      // Glossy gradient per stripe
+      const grad = ctx.createLinearGradient(xLeft, tipY - halfBaseH, xLeft, tipY + halfBaseH);
+      const sc = stripeColors[colorIdx];
+      grad.addColorStop(0,   lighten(sc, 0.35));
+      grad.addColorStop(0.3, sc);
+      grad.addColorStop(0.7, darken(sc, 0.2));
+      grad.addColorStop(1,   darken(sc, 0.4));
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Glossy sheen highlight on each stripe
+      const sheen = ctx.createLinearGradient(xLeft, tipY - halfBaseH, xLeft + stripeW * 0.4, tipY);
+      sheen.addColorStop(0, "rgba(255,255,255,0.35)");
+      sheen.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = sheen;
+      ctx.fill();
     }
 
-    // ── Twisted paper stripes ─────────────────────────────────────────────
-    const stripeCount = 7;
-    const stripeSpacing = (bodyEnd - bodyStart) / stripeCount;
-    ctx.save();
-    ctx.globalAlpha = isGolden ? 0.5 : 0.35;
+    // ── Sponsor branding strip ────────────────────────────────────────────────
+    // One of the diagonal bands is the sponsor's brand strip
+    if (sponsor) {
+      const brandX = tipX + coneLength * 0.42; // position brand in middle-ish
+      const brandW = stripeW * 1.4;
 
-    for (let i = 0; i < stripeCount; i++) {
-      const x = bodyStart + i * stripeSpacing;
-      const progress = i / stripeCount;
-      const rTop = bodyRadius * (1 - progress * 0.35);
-      const offset = Math.sin((spinAngle + i * 0.9) * 2) * rTop * 0.6;
-
-      ctx.beginPath();
-      ctx.moveTo(x, tipY - rTop + offset);
-      ctx.lineTo(x + stripeSpacing * 0.7, tipY - rTop * 0.5 + offset * 0.5);
-      ctx.lineWidth = Math.max(1, stripeSpacing * 0.25);
-      ctx.strokeStyle = isGolden
-        ? (i % 2 === 0 ? "rgba(139,105,20,1)" : "rgba(255,235,100,1)")
-        : (i % 2 === 0
-          ? `rgba(${Math.max(0, baseColor.r - 50)},${Math.max(0, baseColor.g - 40)},${Math.max(0, baseColor.b - 30)},1)`
-          : `rgba(${Math.min(255, baseColor.r + 60)},${Math.min(255, baseColor.g + 50)},${Math.min(255, baseColor.b + 40)},1)`);
-      ctx.stroke();
-    }
-    ctx.restore();
-
-    // ── Sponsor branding on body ──────────────────────────────────────────
-    if (sponsor?.name) {
       ctx.save();
-      const centerX = (bodyStart + bodyEnd) / 2;
-      const waveOffset = Math.sin(spinAngle * 1.5) * 2;
-
-      // Clip to dart body shape so branding stays inside
+      // Clip to the brand strip parallelogram
       ctx.beginPath();
-      ctx.moveTo(tipX, tipY);
-      ctx.quadraticCurveTo(bodyStart, tipY - bodyRadius * 0.5, bodyStart + W * 0.1, tipY - bodyRadius);
-      ctx.lineTo(bodyEnd, tipY - tailRadius);
-      ctx.lineTo(bodyEnd, tipY + tailRadius);
-      ctx.lineTo(bodyStart + W * 0.1, tipY + bodyRadius);
-      ctx.quadraticCurveTo(bodyStart, tipY + bodyRadius * 0.5, tipX, tipY);
+      ctx.moveTo(brandX,         tipY - halfH(brandX)         - diagonalSlant * 0.5);
+      ctx.lineTo(brandX + brandW, tipY - halfH(brandX + brandW) - diagonalSlant * 0.5);
+      ctx.lineTo(brandX + brandW, tipY + halfH(brandX + brandW) + diagonalSlant * 0.5);
+      ctx.lineTo(brandX,         tipY + halfH(brandX)         + diagonalSlant * 0.5);
+      ctx.closePath();
       ctx.clip();
 
       const logoImg = logoImgRef.current;
       if (logoImg && logoLoadedRef.current) {
-        // Draw logo image with slight skew to simulate paper wrap
-        const logoH = bodyRadius * 1.4;
-        const logoW = Math.min(logoH * (logoImg.naturalWidth / logoImg.naturalHeight), (bodyEnd - bodyStart) * 0.45);
-        ctx.save();
-        ctx.translate(centerX, tipY);
-        // Apply subtle wave skew to simulate printed-on-paper look
-        ctx.transform(1, waveOffset * 0.008, waveOffset * 0.015, 1, 0, 0);
-        ctx.globalAlpha = 0.88;
-        ctx.drawImage(logoImg, -logoW / 2, -logoH / 2, logoW, logoH);
-        ctx.restore();
+        // Draw logo image filling the brand strip
+        const lH = halfH(brandX + brandW * 0.5) * 2.2;
+        const lW = lH * (logoImg.naturalWidth / logoImg.naturalHeight);
+        ctx.globalAlpha = 0.92;
+        ctx.drawImage(
+          logoImg,
+          brandX + brandW * 0.5 - lW * 0.5,
+          tipY - lH * 0.5,
+          lW,
+          lH
+        );
       } else {
-        // Fallback: sponsor name text with wave effect
-        ctx.translate(centerX, tipY);
-        ctx.rotate(waveOffset * 0.04);
-        ctx.font = `bold ${Math.max(8, H * 0.22 * scale)}px 'Fredoka One', cursive`;
+        // Fallback: sponsor name text
+        const midX = brandX + brandW * 0.5;
+        const midH = halfH(midX);
+        const fontSize = Math.max(6, midH * 0.8);
+        ctx.font = `bold ${fontSize}px 'Fredoka One', cursive`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        // Shadow
-        ctx.fillStyle = "rgba(0,0,0,0.45)";
-        ctx.fillText(sponsor.name.toUpperCase(), 1, 1);
-        // Main text
-        ctx.fillStyle = "rgba(255,255,255,0.9)";
-        ctx.fillText(sponsor.name.toUpperCase(), 0, 0);
+        ctx.fillStyle = "rgba(0,0,0,0.5)";
+        ctx.fillText(sponsor.name.toUpperCase(), midX + 0.5, tipY + 0.5);
+        ctx.fillStyle = "rgba(255,255,255,0.95)";
+        ctx.fillText(sponsor.name.toUpperCase(), midX, tipY);
       }
       ctx.restore();
     }
 
-    // ── Tip (sharp point) ─────────────────────────────────────────────────
+    // ── Golden foil shimmer overlay ───────────────────────────────────────────
+    if (isGolden) {
+      const shimmer = ctx.createLinearGradient(tipX, tipY - halfBaseH, baseX, tipY + halfBaseH);
+      const pulse = 0.15 + 0.1 * Math.sin(t * 2.5);
+      shimmer.addColorStop(0,   `rgba(255,215,0,0)`);
+      shimmer.addColorStop(0.3, `rgba(255,235,100,${pulse})`);
+      shimmer.addColorStop(0.6, `rgba(255,215,0,${pulse * 0.8})`);
+      shimmer.addColorStop(1,   `rgba(255,215,0,0)`);
+      ctx.fillStyle = shimmer;
+      ctx.fillRect(tipX, tipY - halfBaseH, coneLength, halfBaseH * 2);
+    }
+
+    ctx.restore(); // end clip
+
+    // ── Tip: dark hardened point (sealed with saliva) ─────────────────────────
     ctx.save();
-    const tipGrad = ctx.createLinearGradient(0, tipY - 4, 0, tipY + 4);
-    tipGrad.addColorStop(0, "#c8a96e");
-    tipGrad.addColorStop(1, "#8b6914");
+    const tipLen = coneLength * 0.08;
+    const tipGrad = ctx.createLinearGradient(tipX, 0, tipX + tipLen, 0);
+    tipGrad.addColorStop(0, "#1a0f00");
+    tipGrad.addColorStop(0.5, "#3d2800");
+    tipGrad.addColorStop(1, "rgba(61,40,0,0)");
     ctx.beginPath();
-    ctx.moveTo(0, tipY);
-    ctx.lineTo(bodyStart, tipY - H * 0.08);
-    ctx.lineTo(bodyStart, tipY + H * 0.08);
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(tipX + tipLen, tipY - halfH(tipX + tipLen));
+    ctx.lineTo(tipX + tipLen, tipY + halfH(tipX + tipLen));
+    ctx.closePath();
     ctx.fillStyle = tipGrad;
     ctx.fill();
     ctx.restore();
 
-    // ── Tail fins ─────────────────────────────────────────────────────────
+    // ── Outline (subtle shadow edge) ──────────────────────────────────────────
     ctx.save();
-    ctx.fillStyle = `rgba(${Math.max(0, baseColor.r - 30)},${Math.max(0, baseColor.g - 25)},${Math.max(0, baseColor.b - 15)},0.9)`;
-    // Top fin
-    ctx.beginPath();
-    ctx.moveTo(bodyEnd - W * 0.05, tipY - tailRadius);
-    ctx.lineTo(W, tipY - tailRadius * 1.8);
-    ctx.lineTo(W, tipY - tailRadius * 0.3);
-    ctx.lineTo(bodyEnd, tipY - tailRadius * 0.5);
-    ctx.fill();
-    // Bottom fin
-    ctx.beginPath();
-    ctx.moveTo(bodyEnd - W * 0.05, tipY + tailRadius);
-    ctx.lineTo(W, tipY + tailRadius * 1.8);
-    ctx.lineTo(W, tipY + tailRadius * 0.3);
-    ctx.lineTo(bodyEnd, tipY + tailRadius * 0.5);
-    ctx.fill();
-    ctx.restore();
-
-    // ── Outline ───────────────────────────────────────────────────────────
-    ctx.save();
-    ctx.globalAlpha = 0.3;
-    ctx.strokeStyle = "rgba(0,0,0,0.4)";
-    ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(tipX, tipY);
-    ctx.quadraticCurveTo(bodyStart, tipY - bodyRadius * 0.5, bodyStart + W * 0.1, tipY - bodyRadius);
-    ctx.lineTo(bodyEnd, tipY - tailRadius);
-    ctx.lineTo(W, tipY - tailRadius * 1.8);
+    ctx.lineTo(baseX, tipY - halfBaseH);
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(baseX, tipY + halfBaseH);
+    ctx.strokeStyle = "rgba(0,0,0,0.18)";
+    ctx.lineWidth = 0.8;
     ctx.stroke();
     ctx.restore();
+
+    // ── Golden glow (outside clip) ────────────────────────────────────────────
+    if (isGolden) {
+      ctx.save();
+      ctx.shadowColor = `rgba(255,215,0,${0.6 + 0.3 * Math.sin(t * 2.5)})`;
+      ctx.shadowBlur = 10 + 5 * Math.sin(t * 2.5);
+      ctx.strokeStyle = "rgba(255,215,0,0.5)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(tipX, tipY);
+      ctx.lineTo(baseX, tipY - halfBaseH);
+      ctx.lineTo(baseX, tipY + halfBaseH);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.restore();
+    }
   }
 
   useEffect(() => {
@@ -250,43 +275,65 @@ export function PaperDart({ sponsor, isGolden = false, width = 120, height = 40,
     canvas.width = W;
     canvas.height = H;
 
-    if (spinning) {
+    if (spinning || isGolden) {
       const animate = () => {
-        angleRef.current += 0.08;
-        drawDartFn(ctx, W, H, angleRef.current);
+        angleRef.current += 0.06;
+        drawDart(ctx, W, H, angleRef.current);
         animFrameRef.current = requestAnimationFrame(animate);
       };
       animFrameRef.current = requestAnimationFrame(animate);
     } else {
-      drawDartFn(ctx, W, H, 0);
+      drawDart(ctx, W, H, 0);
     }
 
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
-  }, [sponsor, width, height, spinning, scale, dartColor]);
+  }, [sponsor, width, height, spinning, scale, isGolden]);
 
   return (
     <canvas
       ref={canvasRef}
       width={width * scale}
       height={height * scale}
-      style={{ width: width, height: height }}
+      style={{ width, height }}
       className={className}
     />
   );
 }
 
+// ── Colour helpers ─────────────────────────────────────────────────────────────
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
   const clean = hex.replace("#", "");
-  const num = parseInt(clean.length === 3
+  const full = clean.length === 3
     ? clean.split("").map(c => c + c).join("")
-    : clean, 16);
+    : clean;
+  const num = parseInt(full, 16);
   return {
     r: Math.min(255, Math.max(0, (num >> 16) & 0xff)),
     g: Math.min(255, Math.max(0, (num >> 8) & 0xff)),
     b: Math.min(255, Math.max(0, num & 0xff)),
   };
+}
+
+function lighten(color: string, amount: number): string {
+  if (color.startsWith("rgb")) {
+    const m = color.match(/\d+/g);
+    if (!m) return color;
+    const [r, g, b] = m.map(Number);
+    return `rgb(${Math.min(255,r+Math.round(255*amount))},${Math.min(255,g+Math.round(255*amount))},${Math.min(255,b+Math.round(255*amount))})`;
+  }
+  return color;
+}
+
+function darken(color: string, amount: number): string {
+  if (color.startsWith("rgb")) {
+    const m = color.match(/\d+/g);
+    if (!m) return color;
+    const [r, g, b] = m.map(Number);
+    return `rgb(${Math.max(0,r-Math.round(255*amount))},${Math.max(0,g-Math.round(255*amount))},${Math.max(0,b-Math.round(255*amount))})`;
+  }
+  return color;
 }
 
 export default PaperDart;

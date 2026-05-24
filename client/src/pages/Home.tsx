@@ -221,8 +221,8 @@ export default function Home() {
                     message: sponsors[0].message,
                     clickUrl: sponsors[0].clickUrl,
                   } : null}
-                  width={160}
-                  height={52}
+                  width={200}
+                  height={36}
                   spinning={blowState === "blowing"}
                 />
               </div>

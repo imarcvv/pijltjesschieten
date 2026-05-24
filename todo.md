@@ -58,3 +58,13 @@
 - [x] Win tracking: store golden dart wins in database
 - [x] Admin: configure prize text and golden probability per sponsor
 - [x] Vitest: golden dart probability and win tracking logic
+
+## Dart Visual Redesign (Conical Magazine Paper)
+- [x] PaperDart canvas: true elongated cone shape (sharp tip on right, wide open end on left)
+- [x] Diagonal glossy magazine-strip wrapping effect on cone body (barber-pole style, photo imagery)
+- [x] Sponsor logo/branding integrated as one of the diagonal glossy strips
+- [x] Golden dart variant: gold foil shimmer on cone with warm glow
+- [x] DartUnfoldModal: unroll animation — cone morphs back to flat rectangular magazine strip
+- [x] Flat strip reveals sponsor ad/message as if it were the original magazine page
+- [x] Glossy sheen effect on the flat strip (CSS gradient highlight)
+- [x] Update all dart sizes/proportions to match real dart aspect ratio (long and thin cone)

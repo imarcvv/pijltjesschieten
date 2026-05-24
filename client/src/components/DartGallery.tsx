@@ -85,8 +85,8 @@ export function DartGallery() {
                 <PaperDart
                   sponsor={sponsor}
                   isGolden={isGolden}
-                  width={90}
-                  height={30}
+                  width={110}
+                  height={22}
                 />
               </div>
 

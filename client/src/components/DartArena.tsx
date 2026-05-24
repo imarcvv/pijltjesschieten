@@ -145,8 +145,8 @@ export function DartArena({ darts, onDartClick, onDartLanded }: DartArenaProps) 
           <PaperDart
             sponsor={dart.sponsor}
             isGolden={dart.isGolden}
-            width={100}
-            height={34}
+            width={140}
+            height={26}
             spinning={dart.phase === "flying"}
           />
         </div>
