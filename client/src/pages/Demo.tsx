@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useBlowDetection } from "@/hooks/useBlowDetection";
@@ -11,21 +11,20 @@ const SESSION_ID = `demo_${Math.random().toString(36).slice(2, 10)}`;
 
 // ── Fake news articles ────────────────────────────────────────────────────────
 const NEWS_ITEMS = [
-  { id: 1, cat: "Nieuws", catColor: "#c0392b", title: "Kabinet presenteert nieuw klimaatakkoord voor 2035", time: "14 min geleden", img: "🌿", hot: true },
-  { id: 2, cat: "Sport", catColor: "#2980b9", title: "Ajax wint met 3-1 van PSV in de Johan Cruijff Arena", time: "32 min geleden", img: "⚽", hot: false },
-  { id: 3, cat: "Tech", catColor: "#8e44ad", title: "Nederlandse startup haalt €50 miljoen op voor AI-platform", time: "1 uur geleden", img: "🤖", hot: false },
-  { id: 4, cat: "Economie", catColor: "#27ae60", title: "AEX sluit hoger na positief Amerikaans banenrapport", time: "2 uur geleden", img: "📈", hot: false },
-  { id: 5, cat: "Entertainment", catColor: "#e67e22", title: "Marco Borsato kondigt grote comeback-tour aan", time: "3 uur geleden", img: "🎤", hot: false },
-  { id: 6, cat: "Nieuws", catColor: "#c0392b", title: "RIVM waarschuwt voor hittegolf komend weekend", time: "4 uur geleden", img: "☀️", hot: false },
+  { id: 1, cat: "Nieuws", catColor: "#c0392b", title: "Kabinet presenteert nieuw klimaatakkoord voor 2035", time: "14 min", img: "🌿" },
+  { id: 2, cat: "Sport", catColor: "#2980b9", title: "Ajax wint met 3-1 van PSV in de Johan Cruijff Arena", time: "32 min", img: "⚽" },
+  { id: 3, cat: "Tech", catColor: "#8e44ad", title: "Nederlandse startup haalt €50 miljoen op voor AI-platform", time: "1 uur", img: "🤖" },
+  { id: 4, cat: "Economie", catColor: "#27ae60", title: "AEX sluit hoger na positief Amerikaans banenrapport", time: "2 uur", img: "📈" },
+  { id: 5, cat: "Entertainment", catColor: "#e67e22", title: "Marco Borsato kondigt grote comeback-tour aan", time: "3 uur", img: "🎤" },
+  { id: 6, cat: "Nieuws", catColor: "#c0392b", title: "RIVM waarschuwt voor hittegolf komend weekend", time: "4 uur", img: "☀️" },
 ];
 
 const TRENDING = [
-  "Koningshuis nieuws",
-  "Formule 1 Grand Prix",
-  "Woningmarkt 2025",
-  "Vakantietips zomer",
-  "Energieprijzen dalen",
+  "Koningshuis nieuws", "Formule 1 Grand Prix", "Woningmarkt 2025",
+  "Vakantietips zomer", "Energieprijzen dalen",
 ];
+
+const RETRO_FONT = "Verdana, Tahoma, Arial, sans-serif";
 
 export default function Demo() {
   const [flyingDarts, setFlyingDarts] = useState<FlyingDart[]>([]);
@@ -50,15 +49,13 @@ export default function Demo() {
     const sponsor = getRandomSponsor();
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-
-    // Darts always shoot from left side, varying heights
     const startX = vw * 0.02;
     const startY = vh * 0.15 + Math.random() * vh * 0.65;
     const angle = -8 + Math.random() * 16;
     const speed = 0.65 + power * 0.35;
     const spin = (Math.random() > 0.5 ? 1 : -1) * (0.8 + Math.random() * 1.2);
-
     const dartId = nanoid();
+
     const newDart: FlyingDart = {
       id: dartId,
       sponsor: sponsor ? {
@@ -75,18 +72,11 @@ export default function Demo() {
     setShowTip(false);
 
     fireDartMutation.mutate(
-      {
-        sponsorId: sponsor?.id,
-        sessionId: SESSION_ID,
-        shooterName: "Demo bezoeker",
-        trajectoryData: { startX, startY, angle, speed, spin },
-      },
+      { sponsorId: sponsor?.id, sessionId: SESSION_ID, shooterName: "Demo bezoeker", trajectoryData: { startX, startY, angle, speed, spin } },
       {
         onSuccess: (savedDart) => {
           if (savedDart?.isGolden) {
-            setFlyingDarts(prev =>
-              prev.map(d => d.id === dartId ? { ...d, isGolden: true } : d)
-            );
+            setFlyingDarts(prev => prev.map(d => d.id === dartId ? { ...d, isGolden: true } : d));
           }
         },
       }
@@ -94,483 +84,442 @@ export default function Demo() {
   }, [getRandomSponsor, fireDartMutation]);
 
   const { state: blowState, level, error: blowError, start: startBlow, stop: stopBlow } = useBlowDetection({
-    threshold: 0.28,
-    sustainMs: 120,
-    cooldownMs: 1500,
-    onFire: shootDart,
+    threshold: 0.28, sustainMs: 120, cooldownMs: 1500, onFire: shootDart,
   });
 
   const isActive = blowState === "ready" || blowState === "blowing" || blowState === "fired";
   const pct = Math.round(level * 100);
 
   return (
-    <div className="min-h-screen bg-white" ref={containerRef}>
-      {/* Flying darts overlay — covers the ENTIRE page */}
-      <DartArena
-        darts={flyingDarts}
-        onDartClick={d => setSelectedDart(d)}
-        onDartLanded={() => {}}
-      />
-
+    <div ref={containerRef} style={{ minHeight: "100vh", background: "#e8e8e8", fontFamily: RETRO_FONT }}>
+      {/* Flying darts overlay */}
+      <DartArena darts={flyingDarts} onDartClick={d => setSelectedDart(d)} onDartLanded={() => {}} />
       {selectedDart && (
-        <DartUnfoldModal
-          sponsor={selectedDart.sponsor}
-          isGolden={selectedDart.isGolden}
-          onClose={() => setSelectedDart(null)}
-        />
+        <DartUnfoldModal sponsor={selectedDart.sponsor} isGolden={selectedDart.isGolden} onClose={() => setSelectedDart(null)} />
       )}
 
-      {/* ── Pijltjesschieten.nl control bar (floating, sticky top) ─────────── */}
-      <div
-        className="sticky top-0 z-[9998] flex items-center gap-3 px-4 py-2 shadow-lg"
-        style={{ background: "oklch(0.52 0.18 40)", borderBottom: "3px solid oklch(0.35 0.12 40)" }}
-      >
-        {/* Logo */}
+      {/* ── Pijltjesschieten.nl sticky control bar ─────────────────────────── */}
+      <div style={{
+        position: "sticky", top: 0, zIndex: 9998,
+        background: "#003399", borderBottom: "3px solid #ffcc00",
+        display: "flex", alignItems: "center", gap: 8, padding: "4px 12px",
+        boxShadow: "0 2px 4px rgba(0,0,0,0.4)",
+      }}>
         <Link href="/">
-          <div className="flex items-center gap-2 cursor-pointer">
-            <PaperDart width={60} height={12} />
-            <span className="font-display text-white text-sm hidden sm:block" style={{ letterSpacing: "0.02em" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", textDecoration: "none" }}>
+            <PaperDart width={55} height={11} />
+            <span style={{ color: "#ffcc00", fontWeight: "bold", fontSize: 13, fontFamily: RETRO_FONT }}>
               Pijltjesschieten.nl
             </span>
           </div>
         </Link>
 
-        <div className="w-px h-6 bg-white/30" />
+        <div style={{ width: 1, height: 24, background: "rgba(255,255,255,0.3)", margin: "0 4px" }} />
 
-        {/* Blow meter — compact inline version */}
+        {/* Blow meter */}
         <div
-          className="relative flex-1 max-w-xs h-9 rounded-full border-2 border-white/40 overflow-hidden cursor-pointer select-none"
           onClick={!isActive ? startBlow : undefined}
           title={isActive ? "Blaas nu!" : "Klik om te starten"}
+          style={{
+            flex: 1, maxWidth: 320, height: 26, borderRadius: 13,
+            border: "2px solid #ffcc00", overflow: "hidden", cursor: !isActive ? "pointer" : "default",
+            background: "#001a66", position: "relative",
+          }}
         >
-          <div
-            className="blow-meter-fill absolute left-0 top-0 h-full rounded-full"
-            style={{ width: `${pct}%`, opacity: isActive ? 1 : 0.4 }}
-          />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="font-display text-xs text-white drop-shadow" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.5)" }}>
-              {blowError
-                ? "❌ Geen microfoon"
-                : blowState === "idle" ? "🎯 Klik & blaas om te schieten"
-                : blowState === "requesting" ? "🎤 Microfoon..."
-                : blowState === "ready" ? "💨 Blaas hard!"
-                : blowState === "blowing" ? "💨 HARDER BLAZEN..."
-                : blowState === "fired" ? "🎯 RAAK!"
-                : ""}
-            </span>
+          <div style={{
+            position: "absolute", left: 0, top: 0, height: "100%",
+            width: `${pct}%`,
+            background: blowState === "fired" ? "#00cc44" : blowState === "blowing" ? "#ff6600" : "#ffcc00",
+            transition: "width 0.05s linear",
+            opacity: isActive ? 1 : 0.5,
+          }} />
+          {/* Threshold marker */}
+          <div style={{
+            position: "absolute", top: 0, bottom: 0, left: "28%", width: 2,
+            background: "rgba(255,255,255,0.6)", zIndex: 1,
+          }} />
+          <div style={{
+            position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 10, fontWeight: "bold", color: "#fff",
+            textShadow: "0 1px 2px rgba(0,0,0,0.8)", fontFamily: RETRO_FONT,
+          }}>
+            {blowError ? "❌ Geen microfoon"
+              : blowState === "idle" ? "🎯 Klik hier & blaas hard!"
+              : blowState === "requesting" ? "🎤 Microfoon toegang..."
+              : blowState === "ready" ? "💨 Blaas hard in je microfoon!"
+              : blowState === "blowing" ? "💨 HARDER BLAZEN..."
+              : blowState === "fired" ? "🎯 RAAK! Pijltje geschoten!"
+              : ""}
           </div>
-          {/* Threshold line */}
-          <div className="absolute top-0 bottom-0 w-0.5 bg-white/50 z-10" style={{ left: "28%" }} />
         </div>
 
-        {/* Shot counter */}
         {shotCount > 0 && (
-          <div className="font-display text-white text-sm hidden sm:flex items-center gap-1">
-            <span className="text-amber-300">{shotCount}</span>
-            <span className="opacity-70 text-xs">geschoten</span>
-          </div>
+          <span style={{ color: "#ffcc00", fontSize: 11, fontWeight: "bold", fontFamily: RETRO_FONT }}>
+            {shotCount}x geschoten
+          </span>
         )}
-
-        {/* Stop button */}
         {isActive && (
-          <button
-            onClick={stopBlow}
-            className="font-retro text-xs text-white/70 hover:text-white transition-colors"
-          >
-            ✕ Stop
-          </button>
+          <button onClick={stopBlow} style={{
+            background: "none", border: "none", color: "rgba(255,255,255,0.7)",
+            cursor: "pointer", fontSize: 11, fontFamily: RETRO_FONT,
+          }}>✕ Stop</button>
         )}
-
         <Link href="/">
-          <button className="ml-auto font-retro text-xs text-white/70 hover:text-white transition-colors hidden sm:block">
-            ← Terug
-          </button>
+          <button style={{
+            marginLeft: "auto", background: "#ffcc00", border: "1px solid #cc9900",
+            color: "#003399", fontWeight: "bold", fontSize: 11, padding: "2px 8px",
+            cursor: "pointer", fontFamily: RETRO_FONT,
+          }}>← Terug</button>
         </Link>
       </div>
 
-      {/* ── Tip overlay ───────────────────────────────────────────────────── */}
+      {/* Tip overlay */}
       {showTip && (
-        <div
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9997] px-5 py-3 rounded-2xl shadow-xl
-            font-display text-sm text-white text-center max-w-xs"
-          style={{ background: "oklch(0.52 0.18 40)", border: "2px solid oklch(0.82 0.16 85)" }}
-        >
-          🎯 Klik op de balk hierboven en blaas hard in je microfoon!
-          <button className="ml-3 text-amber-300 hover:text-white" onClick={() => setShowTip(false)}>✕</button>
+        <div style={{
+          position: "fixed", bottom: 20, left: "50%", transform: "translateX(-50%)",
+          zIndex: 9997, background: "#003399", border: "2px solid #ffcc00",
+          color: "#fff", padding: "8px 16px", fontSize: 12, fontFamily: RETRO_FONT,
+          boxShadow: "2px 2px 4px rgba(0,0,0,0.5)", maxWidth: 320, textAlign: "center",
+        }}>
+          🎯 Klik op de blauwe balk hierboven en blaas hard in je microfoon!
+          <button onClick={() => setShowTip(false)} style={{
+            marginLeft: 8, background: "none", border: "none", color: "#ffcc00",
+            cursor: "pointer", fontWeight: "bold",
+          }}>✕</button>
         </div>
       )}
 
       {/* ════════════════════════════════════════════════════════════════════
-          NU.NL MOCK PAGE
+          NU.NL MOCK PAGE — Hyves/Startpagina era styling
       ════════════════════════════════════════════════════════════════════ */}
 
-      {/* ── NU.nl Header ─────────────────────────────────────────────────── */}
-      <header style={{ background: "#1a1a2e", borderBottom: "1px solid #333" }}>
-        <div className="max-w-5xl mx-auto px-4 py-2 flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center gap-1">
-            <span
-              className="font-display text-3xl font-black"
-              style={{ color: "#e63946", letterSpacing: "-0.02em" }}
-            >
-              NU
-            </span>
-            <span className="font-display text-3xl font-black text-white" style={{ letterSpacing: "-0.02em" }}>.nl</span>
+      {/* NU.nl header — retro 2004 style */}
+      <div style={{ background: "#fff", borderBottom: "1px solid #ccc" }}>
+        <div style={{ maxWidth: 980, margin: "0 auto", padding: "4px 8px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <span style={{ fontFamily: "Georgia, serif", fontSize: 28, fontWeight: "bold", color: "#cc0000" }}>NU</span>
+            <span style={{ fontFamily: "Georgia, serif", fontSize: 28, fontWeight: "bold", color: "#333" }}>.nl</span>
+            <span style={{ fontSize: 10, color: "#666", marginLeft: 4, fontStyle: "italic" }}>het laatste nieuws het eerst</span>
           </div>
-
-          {/* Nav */}
-          <nav className="hidden md:flex items-center gap-4">
-            {["Nieuws", "Sport", "Tech", "Economie", "Entertainment", "Gezondheid"].map(item => (
-              <span key={item} className="text-gray-300 hover:text-white cursor-pointer text-sm font-medium transition-colors">
-                {item}
-              </span>
-            ))}
-          </nav>
-
-          {/* Search */}
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 bg-white/10 rounded-full px-3 py-1">
-              <span className="text-gray-400 text-xs">🔍</span>
-              <span className="text-gray-400 text-xs">Zoeken...</span>
-            </div>
-            <span className="text-gray-400 text-sm cursor-pointer">☰</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <input type="text" placeholder="Zoeken..." style={{
+              border: "1px solid #999", padding: "2px 6px", fontSize: 11, fontFamily: RETRO_FONT, width: 120,
+            }} />
+            <button style={{
+              background: "#003399", color: "#fff", border: "1px solid #001a66",
+              padding: "2px 8px", fontSize: 11, fontFamily: RETRO_FONT, cursor: "pointer",
+            }}>Zoek</button>
           </div>
         </div>
 
-        {/* Sub-nav */}
-        <div style={{ background: "#e63946" }}>
-          <div className="max-w-5xl mx-auto px-4 py-1 flex items-center gap-4 overflow-x-auto">
-            {["Binnenland", "Buitenland", "Politiek", "Koningshuis", "Misdaad", "Wetenschap"].map(item => (
-              <span key={item} className="text-white text-xs font-medium whitespace-nowrap cursor-pointer hover:underline">
+        {/* Nav bar */}
+        <div style={{ background: "#003399", borderTop: "1px solid #001a66" }}>
+          <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 8px", display: "flex" }}>
+            {["HOME", "NIEUWS", "SPORT", "TECH", "ECONOMIE", "ENTERTAINMENT", "GEZONDHEID", "WEER"].map((item, i) => (
+              <div key={item} style={{
+                padding: "4px 10px", fontSize: 11, fontWeight: "bold", color: i === 0 ? "#ffcc00" : "#fff",
+                cursor: "pointer", borderRight: "1px solid rgba(255,255,255,0.2)",
+                fontFamily: RETRO_FONT,
+              }}
+                onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.15)"}
+                onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = "transparent"}
+              >
                 {item}
-              </span>
+              </div>
             ))}
           </div>
         </div>
-      </header>
+      </div>
 
       {/* ── RTB BILLBOARD BANNER (Thuisbezorgd-style) ────────────────────── */}
-      {/* This is the #1 RTB slot — where pijltjes fly OVER */}
-      <div className="relative" style={{ background: "#f5f5f5", borderBottom: "1px solid #ddd" }}>
-        <div className="max-w-5xl mx-auto px-4 py-2">
-          <div
-            className="relative rounded-lg overflow-hidden"
-            style={{
-              background: "linear-gradient(135deg, #ffd700 0%, #ff8c00 40%, #ff4500 100%)",
-              minHeight: 120,
-              border: "2px solid #e0a000",
-            }}
-          >
-            {/* RTB label */}
-            <div
-              className="absolute top-1 left-2 text-xs px-2 py-0.5 rounded"
-              style={{ background: "rgba(0,0,0,0.3)", color: "rgba(255,255,255,0.8)", fontSize: 10 }}
-            >
-              Advertentie
-            </div>
+      <div style={{ background: "#f0f0f0", borderBottom: "1px solid #ccc", padding: "6px 0" }}>
+        <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 8px" }}>
+          <div style={{
+            position: "relative",
+            background: "linear-gradient(90deg, #ffd700 0%, #ff8c00 50%, #ff4500 100%)",
+            border: "2px solid #cc6600",
+            padding: "12px 20px",
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            minHeight: 90,
+          }}>
+            <div style={{
+              position: "absolute", top: 2, left: 4,
+              fontSize: 9, color: "rgba(0,0,0,0.5)", fontFamily: RETRO_FONT,
+            }}>Advertentie</div>
 
-            {/* Banner content — Thuisbezorgd style */}
-            <div className="flex items-center justify-between h-full px-6 py-4">
-              <div className="flex items-center gap-6">
-                {/* Food emoji as placeholder for food image */}
-                <div className="text-7xl" style={{ filter: "drop-shadow(2px 4px 6px rgba(0,0,0,0.3))" }}>
-                  🍔
-                </div>
-                <div>
-                  <div
-                    className="font-black text-white"
-                    style={{ fontSize: 48, lineHeight: 1, textShadow: "2px 2px 0 rgba(0,0,0,0.3)" }}
-                  >
-                    50%
-                  </div>
-                  <div className="font-bold text-white text-lg" style={{ textShadow: "1px 1px 0 rgba(0,0,0,0.3)" }}>
-                    KORTING
-                  </div>
-                </div>
-                <div className="hidden sm:block">
-                  <div className="text-white font-bold text-xl" style={{ textShadow: "1px 1px 0 rgba(0,0,0,0.3)" }}>
-                    Op je eerste bestelling
-                  </div>
-                  <div className="text-yellow-100 text-sm mt-1">
-                    Gebruik code: <strong>WELKOM50</strong>
-                  </div>
-                </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <div style={{ fontSize: 52 }}>🍔</div>
+              <div>
+                <div style={{ fontSize: 42, fontWeight: "bold", color: "#fff", lineHeight: 1, textShadow: "2px 2px 0 rgba(0,0,0,0.3)" }}>50%</div>
+                <div style={{ fontSize: 16, fontWeight: "bold", color: "#fff", textShadow: "1px 1px 0 rgba(0,0,0,0.3)" }}>KORTING</div>
               </div>
-
-              <div className="flex flex-col items-end gap-2">
-                <div
-                  className="font-black text-2xl"
-                  style={{ color: "#1a1a2e", letterSpacing: "-0.02em" }}
-                >
-                  thuisbezorgd.nl
-                </div>
-                <button
-                  className="font-bold text-white px-6 py-2 rounded-full text-sm"
-                  style={{ background: "#1a1a2e", boxShadow: "0 4px 12px rgba(0,0,0,0.3)" }}
-                >
-                  Bestel nu →
-                </button>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: "bold", color: "#fff", textShadow: "1px 1px 0 rgba(0,0,0,0.3)" }}>Op je eerste bestelling</div>
+                <div style={{ fontSize: 12, color: "#fff3cc" }}>Gebruik code: <strong>WELKOM50</strong></div>
               </div>
             </div>
 
-            {/* "Pijltje zone" indicator — subtle dashed border showing dart flight path */}
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                border: "2px dashed rgba(255,255,255,0.3)",
-                borderRadius: 8,
-              }}
-            />
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: 20, fontWeight: "bold", color: "#1a1a2e", fontFamily: "Georgia, serif" }}>thuisbezorgd.nl</div>
+              <button style={{
+                background: "#cc0000", color: "#fff", border: "2px solid #990000",
+                padding: "4px 16px", fontWeight: "bold", fontSize: 13, cursor: "pointer",
+                fontFamily: RETRO_FONT, marginTop: 4,
+              }}>Bestel nu »</button>
+            </div>
+
+            {/* Dart zone indicator */}
+            <div style={{
+              position: "absolute", inset: 0, border: "2px dashed rgba(255,255,255,0.4)",
+              pointerEvents: "none",
+            }} />
           </div>
-
-          {/* RTB explanation label for demo */}
-          <div
-            className="mt-1 text-center text-xs font-retro"
-            style={{ color: "#999" }}
-          >
+          <div style={{ textAlign: "center", fontSize: 9, color: "#999", marginTop: 2, fontFamily: RETRO_FONT }}>
             ↑ RTB Billboard slot (970×250) — pijltjes vliegen hier OVERHEEN ↑
           </div>
         </div>
       </div>
 
-      {/* ── Main content ─────────────────────────────────────────────────── */}
-      <main className="max-w-5xl mx-auto px-4 py-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* ── Main content — 3-column Startpagina/NU.nl hybrid layout ─────── */}
+      <div style={{ maxWidth: 980, margin: "0 auto", padding: "8px", display: "grid", gridTemplateColumns: "1fr 1fr 220px", gap: 8 }}>
 
-          {/* Left: News feed (2/3 width) */}
-          <div className="md:col-span-2 space-y-4">
+        {/* Column 1: Top news */}
+        <div>
+          {/* Breaking ticker */}
+          <div style={{
+            background: "#cc0000", color: "#fff", padding: "3px 8px",
+            fontSize: 11, fontWeight: "bold", fontFamily: RETRO_FONT, marginBottom: 6,
+            display: "flex", alignItems: "center", gap: 6,
+          }}>
+            <span style={{ background: "rgba(0,0,0,0.3)", padding: "1px 4px", fontSize: 10 }}>BREAKING</span>
+            <span>Pijltjesschieten.nl lanceert digitale blaaspijp!</span>
+          </div>
 
-            {/* Breaking news ticker */}
-            <div
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm"
-              style={{ background: "#e63946" }}
-            >
-              <span className="font-bold text-white text-xs px-2 py-0.5 rounded" style={{ background: "rgba(0,0,0,0.3)" }}>
-                BREAKING
-              </span>
-              <span className="text-white text-sm font-medium">
-                Pijltjesschieten.nl lanceert digitale blaaspijp — schiet pijltjes over je favoriete websites!
-              </span>
+          {/* Retro panel box */}
+          <div style={{ border: "1px solid #ccc", background: "#fff", marginBottom: 6 }}>
+            <div style={{
+              background: "#003399", color: "#fff", padding: "3px 8px",
+              fontSize: 11, fontWeight: "bold", fontFamily: RETRO_FONT,
+            }}>
+              📰 Meest gelezen
             </div>
-
-            {/* Top story */}
-            <div
-              className="rounded-xl overflow-hidden border"
-              style={{ borderColor: "#e0e0e0" }}
-            >
-              <div
-                className="relative h-48 flex items-center justify-center text-8xl"
-                style={{ background: "linear-gradient(135deg, #1a1a2e, #2d3561)" }}
-              >
-                🌿
-                <div
-                  className="absolute bottom-0 left-0 right-0 p-4"
-                  style={{ background: "linear-gradient(to top, rgba(0,0,0,0.8), transparent)" }}
+            <div style={{ padding: 0 }}>
+              {NEWS_ITEMS.slice(0, 4).map((item, i) => (
+                <div key={item.id} style={{
+                  display: "flex", alignItems: "flex-start", gap: 6,
+                  padding: "5px 8px", borderBottom: i < 3 ? "1px solid #eee" : "none",
+                  cursor: "pointer",
+                }}
+                  onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = "#f0f4ff"}
+                  onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = "transparent"}
                 >
-                  <span
-                    className="text-xs font-bold px-2 py-0.5 rounded text-white"
-                    style={{ background: "#c0392b" }}
-                  >
-                    NIEUWS
-                  </span>
-                  <h2 className="text-white font-bold text-lg mt-1 leading-tight">
-                    Kabinet presenteert nieuw klimaatakkoord voor 2035
-                  </h2>
-                </div>
-              </div>
-              <div className="p-3 bg-white">
-                <p className="text-gray-600 text-sm">
-                  Het kabinet heeft vandaag een ambitieus klimaatplan gepresenteerd dat Nederland in 2035 klimaatneutraal moet maken. Experts reageren verdeeld op de plannen...
-                </p>
-                <p className="text-gray-400 text-xs mt-2">14 minuten geleden</p>
-              </div>
-            </div>
-
-            {/* News grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {NEWS_ITEMS.slice(1).map(item => (
-                <div
-                  key={item.id}
-                  className="flex gap-3 p-3 rounded-xl border cursor-pointer hover:bg-gray-50 transition-colors"
-                  style={{ borderColor: "#e0e0e0", background: "#fff" }}
-                >
-                  <div
-                    className="w-16 h-16 rounded-lg flex items-center justify-center text-3xl flex-shrink-0"
-                    style={{ background: "#f5f5f5" }}
-                  >
-                    {item.img}
+                  <span style={{ fontSize: 16 }}>{item.img}</span>
+                  <div style={{ flex: 1 }}>
+                    <span style={{
+                      fontSize: 9, fontWeight: "bold", color: "#fff",
+                      background: item.catColor, padding: "1px 4px", marginRight: 4,
+                      fontFamily: RETRO_FONT,
+                    }}>{item.cat}</span>
+                    <span style={{ fontSize: 11, color: "#003399", fontFamily: RETRO_FONT }}>{item.title}</span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <span
-                      className="text-xs font-bold px-1.5 py-0.5 rounded text-white"
-                      style={{ background: item.catColor }}
-                    >
-                      {item.cat}
-                    </span>
-                    <p className="text-gray-800 text-sm font-medium mt-1 leading-tight line-clamp-2">
-                      {item.title}
-                    </p>
-                    <p className="text-gray-400 text-xs mt-1">{item.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* In-article MPU banner (mid-page) */}
-            <div
-              className="rounded-xl overflow-hidden relative"
-              style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", minHeight: 90 }}
-            >
-              <div
-                className="absolute top-1 left-2 text-xs px-2 py-0.5 rounded"
-                style={{ background: "rgba(0,0,0,0.3)", color: "rgba(255,255,255,0.8)", fontSize: 10 }}
-              >
-                Advertentie
-              </div>
-              <div className="flex items-center justify-between px-6 py-4">
-                <div>
-                  <p className="text-white font-bold text-lg">ANWB Wegenwacht</p>
-                  <p className="text-purple-200 text-sm">Al 125 jaar voor u op de weg</p>
-                </div>
-                <div className="text-5xl">🚗</div>
-                <button className="font-bold text-purple-900 bg-white px-4 py-2 rounded-full text-sm">
-                  Word lid
-                </button>
-              </div>
-              <div className="px-4 pb-1 text-center text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
-                ↑ In-article banner slot — ook geschikt voor pijltjes ↑
-              </div>
-            </div>
-
-            {/* More news */}
-            <div className="space-y-2">
-              {[
-                { cat: "Tech", color: "#8e44ad", title: "ChatGPT krijgt nieuw geheugen dat gesprekken onthoudt", time: "5 uur geleden" },
-                { cat: "Economie", color: "#27ae60", title: "Huizenprijzen stijgen voor het vijfde kwartaal op rij", time: "6 uur geleden" },
-                { cat: "Sport", color: "#2980b9", title: "Sifan Hassan breekt wereldrecord op de 10.000 meter", time: "7 uur geleden" },
-              ].map((item, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-3 p-3 rounded-lg border cursor-pointer hover:bg-gray-50 transition-colors"
-                  style={{ borderColor: "#e0e0e0", background: "#fff" }}
-                >
-                  <span
-                    className="text-xs font-bold px-2 py-0.5 rounded text-white flex-shrink-0"
-                    style={{ background: item.color }}
-                  >
-                    {item.cat}
-                  </span>
-                  <p className="text-gray-800 text-sm flex-1">{item.title}</p>
-                  <p className="text-gray-400 text-xs flex-shrink-0">{item.time}</p>
+                  <span style={{ fontSize: 9, color: "#999", whiteSpace: "nowrap", fontFamily: RETRO_FONT }}>{item.time}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Right rail */}
-          <div className="space-y-4">
-
-            {/* Right rail MPU 300x250 */}
-            <div
-              className="rounded-xl overflow-hidden relative"
-              style={{
-                background: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
-                minHeight: 250,
-              }}
-            >
-              <div
-                className="absolute top-1 left-2 text-xs px-2 py-0.5 rounded"
-                style={{ background: "rgba(0,0,0,0.3)", color: "rgba(255,255,255,0.8)", fontSize: 10 }}
-              >
-                Advertentie
-              </div>
-              <div className="flex flex-col items-center justify-center h-full py-8 px-4 text-center gap-3">
-                <div className="text-5xl">📻</div>
-                <p className="text-white font-bold text-xl">Radio Veronica</p>
-                <p className="text-pink-100 text-sm">De beste hits van de 80s en 90s!</p>
-                <button className="font-bold text-pink-900 bg-white px-4 py-2 rounded-full text-sm mt-2">
-                  Luister live
-                </button>
-              </div>
-              <div className="pb-1 text-center text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
-                ↑ Right rail MPU (300×250) ↑
-              </div>
+          {/* In-article MPU 300x250 */}
+          <div style={{ border: "1px solid #ccc", background: "#fff", marginBottom: 6 }}>
+            <div style={{
+              background: "#666", color: "#fff", padding: "2px 8px",
+              fontSize: 10, fontFamily: RETRO_FONT,
+            }}>Advertentie</div>
+            <div style={{
+              background: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+              padding: "20px 12px", textAlign: "center", minHeight: 120,
+              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6,
+            }}>
+              <div style={{ fontSize: 36 }}>📻</div>
+              <div style={{ color: "#fff", fontWeight: "bold", fontSize: 16, fontFamily: "Georgia, serif" }}>Radio Veronica</div>
+              <div style={{ color: "#ffe0f0", fontSize: 11, fontFamily: RETRO_FONT }}>De beste hits van de 80s en 90s!</div>
+              <button style={{
+                background: "#fff", color: "#cc0066", fontWeight: "bold",
+                border: "none", padding: "4px 12px", cursor: "pointer", fontSize: 11, fontFamily: RETRO_FONT,
+              }}>Luister live »</button>
             </div>
-
-            {/* Trending */}
-            <div className="rounded-xl border p-4" style={{ borderColor: "#e0e0e0", background: "#fff" }}>
-              <h3 className="font-bold text-gray-800 text-sm mb-3 flex items-center gap-2">
-                🔥 <span>Trending</span>
-              </h3>
-              <div className="space-y-2">
-                {TRENDING.map((item, i) => (
-                  <div key={i} className="flex items-center gap-2 cursor-pointer hover:text-red-600 transition-colors">
-                    <span className="text-gray-400 text-xs font-bold w-4">{i + 1}</span>
-                    <span className="text-gray-700 text-sm">{item}</span>
-                  </div>
-                ))}
-              </div>
+            <div style={{ textAlign: "center", fontSize: 9, color: "#999", padding: "2px 0", fontFamily: RETRO_FONT }}>
+              MPU (300×250)
             </div>
+          </div>
+        </div>
 
-            {/* Right rail skyscraper 300x600 */}
-            <div
-              className="rounded-xl overflow-hidden relative"
-              style={{
-                background: "linear-gradient(180deg, #0f3460 0%, #16213e 100%)",
-                minHeight: 300,
+        {/* Column 2: More news */}
+        <div>
+          <div style={{ border: "1px solid #ccc", background: "#fff", marginBottom: 6 }}>
+            <div style={{
+              background: "#003399", color: "#fff", padding: "3px 8px",
+              fontSize: 11, fontWeight: "bold", fontFamily: RETRO_FONT,
+            }}>
+              🔥 Laatste nieuws
+            </div>
+            {NEWS_ITEMS.map((item, i) => (
+              <div key={item.id} style={{
+                display: "flex", alignItems: "flex-start", gap: 6,
+                padding: "5px 8px", borderBottom: i < NEWS_ITEMS.length - 1 ? "1px solid #eee" : "none",
+                cursor: "pointer",
               }}
-            >
-              <div
-                className="absolute top-1 left-2 text-xs px-2 py-0.5 rounded"
-                style={{ background: "rgba(0,0,0,0.3)", color: "rgba(255,255,255,0.8)", fontSize: 10 }}
+                onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = "#f0f4ff"}
+                onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = "transparent"}
               >
-                Advertentie
+                <span style={{ fontSize: 14 }}>{item.img}</span>
+                <div style={{ flex: 1 }}>
+                  <span style={{
+                    fontSize: 9, fontWeight: "bold", color: "#fff",
+                    background: item.catColor, padding: "1px 4px", marginRight: 4, fontFamily: RETRO_FONT,
+                  }}>{item.cat}</span>
+                  <span style={{ fontSize: 11, color: "#003399", fontFamily: RETRO_FONT }}>{item.title}</span>
+                </div>
+                <span style={{ fontSize: 9, color: "#999", whiteSpace: "nowrap", fontFamily: RETRO_FONT }}>{item.time}</span>
               </div>
-              <div className="flex flex-col items-center justify-center h-full py-8 px-4 text-center gap-3">
-                <div className="text-5xl">🛒</div>
-                <p className="text-white font-bold text-xl">Wehkamp</p>
-                <p className="text-blue-200 text-sm">Mode, wonen & meer</p>
-                <p className="text-yellow-300 font-bold text-2xl">-30%</p>
-                <p className="text-blue-200 text-xs">op zomercollectie</p>
-                <button className="font-bold text-blue-900 bg-white px-4 py-2 rounded-full text-sm mt-2">
-                  Shop nu
-                </button>
-              </div>
-              <div className="pb-1 text-center text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>
-                ↑ Skyscraper (300×600) ↑
+            ))}
+          </div>
+
+          {/* Hyvertentie / sponsor box */}
+          <div style={{ border: "2px solid #ffcc00", background: "#fffbe6", padding: 8 }}>
+            <div style={{
+              fontSize: 10, color: "#cc6600", fontWeight: "bold",
+              fontFamily: RETRO_FONT, marginBottom: 4,
+            }}>⭐ Hyvertentie</div>
+            <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+              <div style={{
+                width: 50, height: 50, background: "#003399",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 24, flexShrink: 0,
+              }}>🛒</div>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: "bold", color: "#cc0000", fontFamily: RETRO_FONT }}>
+                  Gratis bezorging bij Wehkamp!
+                </div>
+                <div style={{ fontSize: 11, color: "#333", fontFamily: RETRO_FONT, marginTop: 2 }}>
+                  Mode, wonen & meer. Vandaag besteld, morgen in huis. Gratis retourneren.
+                </div>
+                <a href="#" style={{ fontSize: 11, color: "#003399", fontFamily: RETRO_FONT }}>
+                  Ja, ik wil! »
+                </a>
               </div>
             </div>
           </div>
         </div>
-      </main>
 
-      {/* ── Demo explanation footer ───────────────────────────────────────── */}
-      <div
-        className="mt-8 py-6 px-4"
-        style={{ background: "oklch(0.52 0.18 40)", borderTop: "4px solid oklch(0.35 0.12 40)" }}
-      >
-        <div className="max-w-5xl mx-auto">
-          <div className="grid sm:grid-cols-3 gap-6 text-center">
+        {/* Column 3: Right rail — Startpagina-style panels */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+
+          {/* Right rail MPU */}
+          <div style={{ border: "1px solid #ccc", background: "#fff" }}>
+            <div style={{ background: "#666", color: "#fff", padding: "2px 8px", fontSize: 10, fontFamily: RETRO_FONT }}>
+              Advertentie
+            </div>
+            <div style={{
+              background: "linear-gradient(180deg, #0f3460 0%, #16213e 100%)",
+              padding: "16px 8px", textAlign: "center", minHeight: 180,
+              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6,
+            }}>
+              <div style={{ fontSize: 32 }}>🛒</div>
+              <div style={{ color: "#fff", fontWeight: "bold", fontSize: 14, fontFamily: "Georgia, serif" }}>Wehkamp</div>
+              <div style={{ color: "#aac4ff", fontSize: 10, fontFamily: RETRO_FONT }}>Mode, wonen & meer</div>
+              <div style={{ color: "#ffcc00", fontWeight: "bold", fontSize: 22, fontFamily: RETRO_FONT }}>-30%</div>
+              <div style={{ color: "#aac4ff", fontSize: 10, fontFamily: RETRO_FONT }}>op zomercollectie</div>
+              <button style={{
+                background: "#ffcc00", color: "#003399", fontWeight: "bold",
+                border: "none", padding: "4px 12px", cursor: "pointer", fontSize: 11, fontFamily: RETRO_FONT,
+              }}>Shop nu »</button>
+            </div>
+            <div style={{ textAlign: "center", fontSize: 9, color: "#999", padding: "2px 0", fontFamily: RETRO_FONT }}>
+              Right rail MPU (300×250)
+            </div>
+          </div>
+
+          {/* Trending — Startpagina style */}
+          <div style={{ border: "1px solid #ccc", background: "#fff" }}>
+            <div style={{
+              background: "#e67e22", color: "#fff", padding: "3px 8px",
+              fontSize: 11, fontWeight: "bold", fontFamily: RETRO_FONT,
+            }}>
+              🔥 Trending
+            </div>
+            <div style={{ padding: "4px 0" }}>
+              {TRENDING.map((item, i) => (
+                <div key={i} style={{
+                  display: "flex", alignItems: "center", gap: 6,
+                  padding: "3px 8px", borderBottom: i < TRENDING.length - 1 ? "1px solid #eee" : "none",
+                  cursor: "pointer", fontSize: 11, color: "#003399", fontFamily: RETRO_FONT,
+                }}
+                  onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.color = "#cc0000"}
+                  onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.color = "#003399"}
+                >
+                  <span style={{ color: "#999", fontSize: 10, width: 14 }}>{i + 1}.</span>
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Skyscraper */}
+          <div style={{ border: "1px solid #ccc", background: "#fff" }}>
+            <div style={{ background: "#666", color: "#fff", padding: "2px 8px", fontSize: 10, fontFamily: RETRO_FONT }}>
+              Advertentie
+            </div>
+            <div style={{
+              background: "linear-gradient(180deg, #003399 0%, #001a66 100%)",
+              padding: "20px 8px", textAlign: "center", minHeight: 200,
+              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8,
+            }}>
+              <div style={{ fontSize: 28 }}>🗺️</div>
+              <div style={{ color: "#fff", fontWeight: "bold", fontSize: 13, fontFamily: "Georgia, serif" }}>ANWB</div>
+              <div style={{ color: "#aac4ff", fontSize: 10, fontFamily: RETRO_FONT }}>Uw reispartner</div>
+              <div style={{ color: "#ffcc00", fontWeight: "bold", fontSize: 16, fontFamily: RETRO_FONT }}>Gratis ANWB-pas</div>
+              <div style={{ color: "#aac4ff", fontSize: 10, fontFamily: RETRO_FONT }}>bij lidmaatschap</div>
+              <button style={{
+                background: "#ffcc00", color: "#003399", fontWeight: "bold",
+                border: "none", padding: "4px 12px", cursor: "pointer", fontSize: 11, fontFamily: RETRO_FONT,
+              }}>Word lid »</button>
+            </div>
+            <div style={{ textAlign: "center", fontSize: 9, color: "#999", padding: "2px 0", fontFamily: RETRO_FONT }}>
+              Skyscraper (300×600)
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Footer explanation ─────────────────────────────────────────────── */}
+      <div style={{
+        background: "#003399", borderTop: "3px solid #ffcc00",
+        padding: "16px 8px", marginTop: 8,
+      }}>
+        <div style={{ maxWidth: 980, margin: "0 auto" }}>
+          <div style={{
+            display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gap: 16, textAlign: "center",
+          }}>
             {[
-              { emoji: "🎯", title: "RTB Integratie", desc: "Pijltjes vliegen over bestaande RTB-banners via een lichtgewicht JavaScript snippet" },
-              { emoji: "💨", title: "Microphone Trigger", desc: "Gebruikers blazen in hun microfoon om pijltjes te schieten — net als vroeger met de blaaspijp" },
-              { emoji: "🏷️", title: "Sponsor Branding", desc: "Elk pijltje draagt het logo van een sponsor — klikbaar met een boodschap en clickthrough URL" },
+              { icon: "🎯", title: "RTB Integratie", desc: "Pijltjes vliegen over bestaande RTB-banners via een lichtgewicht JavaScript snippet" },
+              { icon: "💨", title: "Microphone Trigger", desc: "Gebruikers blazen in hun microfoon om pijltjes te schieten — net als vroeger" },
+              { icon: "🏷️", title: "Sponsor Branding", desc: "Elk pijltje draagt het logo van een sponsor — klikbaar met boodschap en URL" },
             ].map(item => (
-              <div key={item.title} className="text-center">
-                <div className="text-3xl mb-2">{item.emoji}</div>
-                <h3 className="font-display text-white text-lg mb-1">{item.title}</h3>
-                <p className="font-retro text-amber-200 text-xs opacity-80">{item.desc}</p>
+              <div key={item.title}>
+                <div style={{ fontSize: 28, marginBottom: 6 }}>{item.icon}</div>
+                <div style={{ color: "#ffcc00", fontWeight: "bold", fontSize: 13, fontFamily: RETRO_FONT, marginBottom: 4 }}>{item.title}</div>
+                <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 11, fontFamily: RETRO_FONT }}>{item.desc}</div>
               </div>
             ))}
           </div>
-          <div className="text-center mt-6">
+          <div style={{ textAlign: "center", marginTop: 16 }}>
             <Link href="/">
-              <button
-                className="btn-retro px-6 py-3 rounded-xl font-display text-lg"
-                style={{ background: "oklch(0.82 0.16 85)", color: "#3d2800" }}
-              >
-                ← Terug naar Pijltjesschieten.nl
-              </button>
+              <button style={{
+                background: "#ffcc00", color: "#003399", fontWeight: "bold",
+                border: "2px solid #cc9900", padding: "6px 20px",
+                fontSize: 13, cursor: "pointer", fontFamily: RETRO_FONT,
+              }}>← Terug naar Pijltjesschieten.nl</button>
             </Link>
           </div>
         </div>

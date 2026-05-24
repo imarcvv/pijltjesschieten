@@ -79,3 +79,25 @@
 - [x] Cylindrical 3D shading (top highlight, bottom shadow, curved surface)
 - [x] DartUnfoldModal: unroll from cylinder to flat horizontal magazine strip
 - [x] Update all dart sizes to match cylinder proportions across all pages
+
+## Hyves/Startpagina Redesign (Early-2000s Dutch Web)
+- [ ] Global CSS: Verdana/Tahoma as primary fonts (no Google Fonts)
+- [ ] Colour palette: Hyves blue (#4a7ab5 headers), orange (#f5a623 accents), yellow (#fff3a0 highlights), white body
+- [ ] Bordered panel boxes with blue header bars (like Startpagina.nl widget boxes)
+- [ ] Beveled/raised button style (classic HTML button look)
+- [ ] Smiley/emoji icons in section headers (Hyves style)
+- [ ] Dense information layout with small text (Verdana 11px like the era)
+- [ ] Top navigation bar in Hyves blue with white text links
+- [ ] Orange gradient banner/header area
+- [ ] Home.tsx: full Hyves/Startpagina panel layout
+- [ ] Demo.tsx: retro style applied to NU.nl mock
+- [ ] Admin.tsx: retro style applied to admin panel
+
+## Photo-Realistic Dart Image
+- [ ] Upload pijltje.png as webdev static asset
+- [ ] Rewrite PaperDart to use photo image instead of canvas drawing
+- [ ] CSS colour tinting per sponsor (hue-rotate + sepia + saturate filters)
+- [ ] Golden dart: gold CSS filter overlay
+- [ ] Spinning animation during flight using the photo image
+- [ ] Update DartArena to use new image-based dart
+- [ ] Update DartGallery to use new image-based dart

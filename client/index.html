@@ -10,7 +10,12 @@
     <meta property="og:description" content="Blaas pijltjes over het scherm — net als vroeger!" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Special+Elite&display=swap" rel="stylesheet" />
+    <!-- Fredoka One for logo/headings, VT323 for retro pixel text -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=VT323&display=swap" rel="stylesheet" />
+    <style>
+      /* Inline critical CSS to prevent FOUC */
+      body { font-family: Verdana, Tahoma, Arial, sans-serif; font-size: 12px; background: #e8eef5; margin: 0; }
+    </style>
   </head>
 
   <body>

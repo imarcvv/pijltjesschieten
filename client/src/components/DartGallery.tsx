@@ -11,7 +11,7 @@ interface SelectedDartInfo {
 export function DartGallery() {
   const { data: recentDarts, isLoading } = trpc.darts.recent.useQuery(
     { limit: 20 },
-    { refetchInterval: 5000 } // Poll every 5 seconds for real-time feel
+    { refetchInterval: 5000 }
   );
 
   const [selectedDartInfo, setSelectedDartInfo] = useState<SelectedDartInfo | null>(null);
@@ -22,11 +22,16 @@ export function DartGallery() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 6 }}>
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="paper-card rounded-xl p-3 animate-pulse">
-            <div className="h-8 bg-amber-200 rounded-full mb-2" />
-            <div className="h-3 bg-amber-100 rounded w-3/4" />
+          <div key={i} style={{
+            background: "#f5f0e8",
+            border: "1px solid #c8b89a",
+            padding: "8px",
+            textAlign: "center",
+          }}>
+            <div style={{ height: 22, background: "#ddd", marginBottom: 4 }} />
+            <div style={{ height: 10, background: "#eee", width: "70%", margin: "0 auto" }} />
           </div>
         ))}
       </div>
@@ -35,17 +40,27 @@ export function DartGallery() {
 
   if (!recentDarts || recentDarts.length === 0) {
     return (
-      <div className="text-center py-12 font-retro text-amber-700 opacity-70">
-        <div className="text-5xl mb-3">🎯</div>
-        <p className="text-lg">Nog geen pijltjes geschoten.</p>
-        <p className="text-sm mt-1">Wees de eerste!</p>
+      <div style={{
+        textAlign: "center",
+        padding: "20px 0",
+        fontFamily: "Verdana, Arial, sans-serif",
+        fontSize: 12,
+        color: "#666",
+      }}>
+        <div style={{ fontSize: 32, marginBottom: 8 }}>🎯</div>
+        <p style={{ margin: 0, fontWeight: "bold" }}>Nog geen pijltjes geschoten.</p>
+        <p style={{ margin: "4px 0 0", color: "#999" }}>Wees de eerste!</p>
       </div>
     );
   }
 
   return (
     <>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))",
+        gap: 4,
+      }}>
         {recentDarts.map((dart, i) => {
           const sponsor = dart.sponsor as DartSponsor | null;
           const isGolden = dart.isGolden ?? false;
@@ -54,34 +69,52 @@ export function DartGallery() {
           return (
             <button
               key={dart.id}
-              className="rounded-xl p-3 text-left hover:scale-105 active:scale-95
-                transition-transform duration-150 cursor-pointer group animate-fade-in-up relative"
-              style={{
-                animationDelay: `${i * 40}ms`,
-                background: isGolden
-                  ? "linear-gradient(135deg, #8B6914 0%, #C8A96E 40%, #FFD700 60%, #FFA500 80%, #C8A96E 100%)"
-                  : undefined,
-                border: isGolden ? "2px solid #FFD700" : undefined,
-                boxShadow: isGolden
-                  ? "0 0 12px rgba(255,215,0,0.5), 3px 3px 0 rgba(0,0,0,0.2)"
-                  : undefined,
-              }}
               onClick={() => handleDartClick(sponsor, isGolden)}
-              aria-label={`${isGolden ? "Gouden pijltje" : "Pijltje"} van ${sponsor?.name ?? "onbekend"}`}
+              title={`${isGolden ? "🏆 Gouden pijltje" : "Pijltje"} van ${sponsor?.name ?? "onbekend"} — klik om te openen`}
+              style={{
+                display: "block",
+                width: "100%",
+                padding: "6px 4px",
+                textAlign: "center",
+                background: isGolden
+                  ? "linear-gradient(135deg, #fff8dc 0%, #ffe066 50%, #fff8dc 100%)"
+                  : "#fff",
+                border: isGolden ? "2px solid #e6a800" : "1px solid #c8b89a",
+                cursor: "pointer",
+                position: "relative",
+                fontFamily: "Verdana, Arial, sans-serif",
+                transition: "background 0.1s",
+              }}
+              onMouseEnter={e => {
+                if (!isGolden) (e.currentTarget as HTMLButtonElement).style.background = "#fffbe6";
+              }}
+              onMouseLeave={e => {
+                if (!isGolden) (e.currentTarget as HTMLButtonElement).style.background = "#fff";
+              }}
             >
               {/* Golden badge */}
               {isGolden && (
-                <div
-                  className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs"
-                  style={{ background: "#FFD700", border: "2px solid #8B6914", zIndex: 1 }}
-                  title="Gouden pijltje!"
-                >
+                <div style={{
+                  position: "absolute",
+                  top: -6,
+                  right: -6,
+                  width: 18,
+                  height: 18,
+                  borderRadius: "50%",
+                  background: "#FFD700",
+                  border: "2px solid #8B6914",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 9,
+                  zIndex: 1,
+                }}>
                   🏆
                 </div>
               )}
 
-              {/* Dart visual */}
-              <div className={`flex justify-center mb-2 ${!isGolden ? "group-hover:animate-wiggle paper-card rounded-xl p-3" : ""}`}>
+              {/* Dart image */}
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 4 }}>
                 <PaperDart
                   sponsor={sponsor}
                   isGolden={isGolden}
@@ -91,30 +124,39 @@ export function DartGallery() {
               </div>
 
               {/* Sponsor name */}
-              <p className="font-display text-xs truncate text-center"
-                style={{ color: isGolden ? "#3d2800" : "#5c3d1e" }}>
+              <div style={{
+                fontSize: 10,
+                fontWeight: "bold",
+                color: isGolden ? "#8B6914" : "#003399",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}>
                 {sponsor?.name ?? "Vrij pijltje"}
-              </p>
+              </div>
 
               {/* Time */}
-              <p className="font-retro text-xs text-center opacity-50 mt-0.5"
-                style={{ color: isGolden ? "#5c3d1e" : "#8b6914" }}>
+              <div style={{ fontSize: 9, color: "#999", marginTop: 1 }}>
                 {timeAgo}
-              </p>
+              </div>
 
               {/* Shooter */}
               {dart.shooterName && (
-                <p className="font-retro text-xs text-center opacity-40 truncate"
-                  style={{ color: isGolden ? "#3d2800" : "#5c3d1e" }}>
+                <div style={{
+                  fontSize: 9,
+                  color: "#666",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}>
                   door {dart.shooterName}
-                </p>
+                </div>
               )}
             </button>
           );
         })}
       </div>
 
-      {/* Unfold modal */}
       {selectedDartInfo !== null && (
         <DartUnfoldModal
           sponsor={selectedDartInfo.sponsor}

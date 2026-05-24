@@ -1,201 +1,439 @@
-@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Special+Elite&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   PIJLTJESSCHIETEN.NL — Hyves / Startpagina.nl retro Dutch web aesthetic
+   Era: 2003–2008 | Fonts: Verdana, Tahoma, Arial (system fonts of the era)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Google Fonts for retro feel ─────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=VT323&display=swap');
+
+/* ── CSS Custom Properties ────────────────────────────────────────────────── */
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --color-background: oklch(0.97 0.02 80);
-  --color-foreground: oklch(0.22 0.04 50);
-  --color-card: oklch(0.95 0.03 75);
-  --color-card-foreground: oklch(0.22 0.04 50);
-  --color-popover: oklch(0.96 0.02 80);
-  --color-popover-foreground: oklch(0.22 0.04 50);
-  --color-primary: oklch(0.55 0.18 40);
-  --color-primary-foreground: oklch(0.98 0.01 80);
-  --color-secondary: oklch(0.88 0.08 80);
-  --color-secondary-foreground: oklch(0.30 0.06 50);
-  --color-muted: oklch(0.92 0.03 75);
-  --color-muted-foreground: oklch(0.52 0.05 60);
-  --color-accent: oklch(0.72 0.16 55);
-  --color-accent-foreground: oklch(0.15 0.04 50);
-  --color-destructive: oklch(0.55 0.22 25);
-  --color-destructive-foreground: oklch(0.98 0.01 80);
-  --color-border: oklch(0.82 0.06 70);
-  --color-input: oklch(0.88 0.04 75);
-  --color-ring: oklch(0.55 0.18 40);
+  /* Hyves/Startpagina colour palette */
+  --color-hyves-blue:        oklch(0.42 0.13 255);   /* #4a7ab5 — panel headers */
+  --color-hyves-blue-dark:   oklch(0.32 0.14 255);   /* #2d5a8e — nav bar */
+  --color-hyves-blue-light:  oklch(0.72 0.09 240);   /* #a8c4e0 — panel border */
+  --color-hyves-orange:      oklch(0.72 0.16 55);    /* #f5a623 — accents */
+  --color-hyves-orange-dark: oklch(0.60 0.17 48);    /* #d4870a — hover */
+  --color-hyves-yellow:      oklch(0.97 0.06 95);    /* #fff3a0 — highlights */
+  --color-hyves-yellow-dark: oklch(0.90 0.10 90);    /* #f0d060 — borders */
+  --color-hyves-green:       oklch(0.52 0.15 145);   /* #4a9a4a — links */
+  --color-hyves-body:        oklch(0.94 0.01 240);   /* #e8eef5 — page bg */
+  --color-hyves-white:       oklch(1.0 0 0);         /* #ffffff — panel bg */
+  --color-hyves-text:        oklch(0.20 0.01 240);   /* #333344 — body text */
+  --color-hyves-link:        oklch(0.38 0.14 255);   /* #1155aa — links */
+  --color-hyves-visited:     oklch(0.35 0.12 290);   /* #660099 — visited */
 
-  /* Dart brand colors */
-  --color-paper-warm: oklch(0.91 0.05 80);
-  --color-paper-aged: oklch(0.85 0.07 75);
-  --color-ink-dark: oklch(0.22 0.04 50);
-  --color-retro-orange: oklch(0.65 0.18 50);
-  --color-retro-red: oklch(0.52 0.22 28);
-  --color-retro-yellow: oklch(0.82 0.16 85);
-  --color-retro-blue: oklch(0.45 0.18 240);
-  --color-retro-green: oklch(0.52 0.15 145);
+  /* Shadcn token overrides */
+  --color-background:        oklch(0.94 0.01 240);
+  --color-foreground:        oklch(0.20 0.01 240);
+  --color-primary:           oklch(0.42 0.13 255);
+  --color-primary-foreground:oklch(1.0 0 0);
+  --color-secondary:         oklch(0.72 0.16 55);
+  --color-secondary-foreground: oklch(0.15 0.02 40);
+  --color-muted:             oklch(0.88 0.02 240);
+  --color-muted-foreground:  oklch(0.45 0.04 240);
+  --color-accent:            oklch(0.97 0.06 95);
+  --color-accent-foreground: oklch(0.20 0.01 240);
+  --color-border:            oklch(0.72 0.09 240);
+  --color-ring:              oklch(0.42 0.13 255);
+  --color-card:              oklch(1.0 0 0);
+  --color-card-foreground:   oklch(0.20 0.01 240);
+  --color-popover:           oklch(1.0 0 0);
+  --color-popover-foreground:oklch(0.20 0.01 240);
+  --color-destructive:       oklch(0.55 0.22 25);
 
-  --font-sans: 'Nunito', sans-serif;
-  --font-display: 'Fredoka One', cursive;
-  --font-retro: 'Special Elite', cursive;
+  --radius: 0px;  /* Hyves/Startpagina had sharp corners */
 
-  --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-  --radius: 0.5rem;
-
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  /* Font stacks — era-accurate */
+  --font-sans: Verdana, Tahoma, Arial, sans-serif;
+  --font-mono: "Courier New", Courier, monospace;
+  --font-retro: "Fredoka One", Verdana, Arial, sans-serif;
+  --font-pixel: "VT323", "Courier New", monospace;
 }
 
+/* ── Base reset ───────────────────────────────────────────────────────────── */
 @layer base {
-  * {
-    @apply border-border;
-    box-sizing: border-box;
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html {
+    font-size: 12px; /* Era-accurate: Verdana 11-12px was standard */
+    scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
-    background-image:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-    background-attachment: fixed;
+    font-family: Verdana, Tahoma, Arial, sans-serif;
+    font-size: 12px;
+    line-height: 1.4;
+    color: #333344;
+    background-color: #e8eef5;
+    margin: 0;
+    padding: 0;
   }
 
-  h1, h2, h3 {
-    font-family: 'Fredoka One', cursive;
-    letter-spacing: 0.02em;
+  a {
+    color: #1155aa;
+    text-decoration: underline;
+  }
+  a:hover { color: #ff6600; text-decoration: underline; }
+  a:visited { color: #660099; }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: Verdana, Tahoma, Arial, sans-serif;
+    font-weight: bold;
+    color: #2d5a8e;
+    margin: 0 0 4px 0;
   }
 
-  .font-retro {
-    font-family: 'Special Elite', cursive;
+  /* Tailwind base tokens */
+  :root {
+    --background: 0 0% 93%;
+    --foreground: 240 10% 20%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 20%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 20%;
+    --primary: 215 45% 48%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 35 90% 55%;
+    --secondary-foreground: 30 60% 15%;
+    --muted: 210 20% 88%;
+    --muted-foreground: 215 15% 45%;
+    --accent: 55 100% 88%;
+    --accent-foreground: 240 10% 20%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 40% 72%;
+    --input: 210 40% 72%;
+    --ring: 215 45% 48%;
+    --radius: 0px;
   }
 }
 
-/* Paper texture card */
-.paper-card {
-  background-color: oklch(0.95 0.04 78);
+/* ═══════════════════════════════════════════════════════════════════════════
+   HYVES / STARTPAGINA COMPONENT CLASSES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Retro panel box (Startpagina.nl widget style) ────────────────────────── */
+.retro-panel {
+  background: #ffffff;
+  border: 1px solid #a8c4e0;
+  border-top: none;
+  margin-bottom: 8px;
+}
+
+.retro-panel-header {
+  background: linear-gradient(180deg, #5a8ec8 0%, #3a6aaa 100%);
+  color: #ffffff;
+  font-family: Verdana, Tahoma, Arial, sans-serif;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 3px 6px;
+  border: 1px solid #2d5a8e;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.retro-panel-header.orange {
+  background: linear-gradient(180deg, #f5b833 0%, #e8920a 100%);
+  border-color: #c07000;
+  color: #3d2000;
+}
+
+.retro-panel-header.green {
+  background: linear-gradient(180deg, #5aaa5a 0%, #3a8a3a 100%);
+  border-color: #2a6a2a;
+}
+
+.retro-panel-body {
+  padding: 6px 8px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* ── Retro button (beveled, Hyves/Startpagina style) ─────────────────────── */
+.retro-btn {
+  font-family: Verdana, Tahoma, Arial, sans-serif;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 3px 10px;
+  border: 1px solid;
+  cursor: pointer;
+  display: inline-block;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.retro-btn-blue {
+  background: linear-gradient(180deg, #6a9ad8 0%, #3a6aaa 100%);
+  border-color: #2d5a8e;
+  color: #ffffff;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.4);
+}
+.retro-btn-blue:hover {
+  background: linear-gradient(180deg, #7aaae8 0%, #4a7aba 100%);
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.retro-btn-orange {
+  background: linear-gradient(180deg, #ffca44 0%, #e8920a 100%);
+  border-color: #c07000;
+  color: #3d2000;
+  font-weight: bold;
+}
+.retro-btn-orange:hover {
+  background: linear-gradient(180deg, #ffd454 0%, #f8a21a 100%);
+  color: #3d2000;
+  text-decoration: none;
+}
+
+.retro-btn-green {
+  background: linear-gradient(180deg, #6aba6a 0%, #3a8a3a 100%);
+  border-color: #2a6a2a;
+  color: #ffffff;
+}
+
+/* ── Hyves-style top navigation bar ─────────────────────────────────────── */
+.hyves-nav {
+  background: linear-gradient(180deg, #3a6aaa 0%, #2d5a8e 100%);
+  border-bottom: 2px solid #1a3a6a;
+  padding: 0;
+}
+
+.hyves-nav a {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 5px 10px;
+  display: inline-block;
+  border-right: 1px solid rgba(255,255,255,0.2);
+}
+.hyves-nav a:hover {
+  background: rgba(255,255,255,0.15);
+  color: #ffdd44;
+  text-decoration: none;
+}
+.hyves-nav a:visited { color: #ffffff; }
+
+/* ── Hyves-style header/logo bar ─────────────────────────────────────────── */
+.hyves-header {
+  background: linear-gradient(180deg, #ffd454 0%, #f5a623 60%, #e8920a 100%);
+  border-bottom: 2px solid #c07000;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── Startpagina-style page background ───────────────────────────────────── */
+.startpagina-bg {
+  background-color: #e8eef5;
   background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
-  border: 2px solid oklch(0.78 0.08 72);
-  box-shadow: 3px 3px 0 oklch(0.70 0.10 68), 6px 6px 0 oklch(0.60 0.08 65);
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 19px,
+      rgba(168,196,224,0.15) 20px
+    );
+  min-height: 100vh;
 }
 
-/* Retro button style */
-.btn-retro {
-  font-family: 'Fredoka One', cursive;
-  letter-spacing: 0.05em;
-  border: 3px solid oklch(0.22 0.04 50);
-  box-shadow: 4px 4px 0 oklch(0.22 0.04 50);
-  transition: all 160ms cubic-bezier(0.23, 1, 0.32, 1);
+/* ── Retro table / list styles ───────────────────────────────────────────── */
+.retro-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
-.btn-retro:active {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 oklch(0.22 0.04 50);
+.retro-list li {
+  padding: 2px 0;
+  border-bottom: 1px dotted #d0d8e8;
+  font-size: 11px;
+}
+.retro-list li:last-child { border-bottom: none; }
+.retro-list li::before {
+  content: "○ ";
+  color: #4a7ab5;
+  font-size: 9px;
 }
 
-/* Dart container overlay */
-#dart-arena {
+/* ── Hyves smiley / badge ────────────────────────────────────────────────── */
+.hyves-smiley {
+  display: inline-block;
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+/* ── "NIEUW" / "TIP" badge ───────────────────────────────────────────────── */
+.retro-badge-new {
+  background: #cc0000;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: bold;
+  padding: 1px 4px;
+  text-transform: uppercase;
+  font-family: Verdana, Arial, sans-serif;
+}
+.retro-badge-tip {
+  background: #f5a623;
+  color: #3d2000;
+  font-size: 9px;
+  font-weight: bold;
+  padding: 1px 4px;
+  text-transform: uppercase;
+}
+
+/* ── Blow meter ───────────────────────────────────────────────────────────── */
+.blow-meter-container {
+  background: #e8eef5;
+  border: 2px inset #a8c4e0;
+  height: 18px;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+.blow-meter-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4a9a4a 0%, #88cc44 60%, #ffcc00 80%, #ff4400 100%);
+  transition: width 0.08s linear;
+  position: absolute;
+  left: 0; top: 0;
+}
+
+/* ── Dart arena overlay ───────────────────────────────────────────────────── */
+.dart-arena {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 9999;
   overflow: hidden;
 }
-
-/* Flying dart */
-.flying-dart {
-  position: absolute;
+.dart-arena .dart-clickable {
   pointer-events: auto;
-  cursor: pointer;
-  transform-origin: center center;
-  will-change: transform, opacity;
+  cursor: crosshair;
 }
 
-/* Blow meter */
-.blow-meter-fill {
-  transition: width 80ms linear;
-  background: linear-gradient(90deg,
-    oklch(0.72 0.16 55) 0%,
-    oklch(0.65 0.18 50) 50%,
-    oklch(0.52 0.22 28) 100%
-  );
+/* ── Retro input field ────────────────────────────────────────────────────── */
+.retro-input {
+  font-family: Verdana, Tahoma, Arial, sans-serif;
+  font-size: 11px;
+  border: 1px solid #a8c4e0;
+  border-top-color: #6a8ab0;
+  border-left-color: #6a8ab0;
+  padding: 2px 4px;
+  background: #ffffff;
+  color: #333344;
+  outline: none;
+}
+.retro-input:focus {
+  border-color: #4a7ab5;
+  background: #fffef0;
 }
 
-/* Dart rolling animation */
-@keyframes dartRoll {
-  0% { transform: rotate(0deg) scale(0.8); opacity: 0.6; }
-  50% { transform: rotate(180deg) scale(1.05); opacity: 1; }
-  100% { transform: rotate(360deg) scale(1); opacity: 1; }
+/* ── Retro select ────────────────────────────────────────────────────────── */
+.retro-select {
+  font-family: Verdana, Tahoma, Arial, sans-serif;
+  font-size: 11px;
+  border: 1px solid #a8c4e0;
+  padding: 2px 4px;
+  background: #ffffff;
+  color: #333344;
 }
 
-@keyframes dartFly {
-  0% { transform: translateX(0) translateY(0) rotate(0deg); opacity: 1; }
-  100% { transform: translateX(var(--fly-x)) translateY(var(--fly-y)) rotate(var(--fly-rot)); opacity: 0; }
+/* ── Hyves-style counter/stat ────────────────────────────────────────────── */
+.hyves-counter {
+  color: #cc0000;
+  font-weight: bold;
+  font-size: 14px;
 }
 
-@keyframes dartSpin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+/* ── Startpagina column layout ───────────────────────────────────────────── */
+.sp-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  align-items: start;
+}
+@media (max-width: 768px) {
+  .sp-columns { grid-template-columns: 1fr; }
+}
+.sp-columns-2 {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 8px;
+  align-items: start;
+}
+@media (max-width: 768px) {
+  .sp-columns-2 { grid-template-columns: 1fr; }
 }
 
-@keyframes dartBounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+/* ── Retro scrollbar (WebKit) ────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 16px; height: 16px; }
+::-webkit-scrollbar-track { background: #d0d8e8; border: 1px solid #a8c4e0; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #8ab0d8 0%, #5a80b0 100%);
+  border: 1px solid #3a6090;
+}
+::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #9ac0e8 0%, #6a90c0 100%); }
+::-webkit-scrollbar-button { background: #5a80b0; border: 1px solid #3a6090; height: 16px; }
+
+/* ── Animations ───────────────────────────────────────────────────────────── */
+@keyframes dart-fly {
+  0%   { opacity: 0; transform: translateX(-20px) rotate(var(--dart-angle, 0deg)); }
+  5%   { opacity: 1; }
+  95%  { opacity: 1; }
+  100% { opacity: 0; transform: translateX(calc(100vw + 100px)) rotate(var(--dart-angle, 0deg)); }
 }
 
-@keyframes unfold {
-  0% { transform: scaleY(0.1) scaleX(0.3); opacity: 0; }
-  60% { transform: scaleY(1.05) scaleX(1.02); opacity: 1; }
-  100% { transform: scaleY(1) scaleX(1); opacity: 1; }
+@keyframes dart-roll {
+  0%   { transform: scale(0.5) rotate(-180deg); opacity: 0; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
 }
+.animate-dart-roll { animation: dart-roll 0.4s cubic-bezier(0.23,1,0.32,1) both; }
 
-@keyframes paperRoll {
-  0% { transform: rotate(-5deg) scale(0.95); }
-  25% { transform: rotate(5deg) scale(1.02); }
-  50% { transform: rotate(-3deg) scale(0.98); }
-  75% { transform: rotate(3deg) scale(1.01); }
-  100% { transform: rotate(0deg) scale(1); }
+@keyframes blink-cursor {
+  0%, 100% { opacity: 1; } 50% { opacity: 0; }
 }
+.blink { animation: blink-cursor 1s step-end infinite; }
 
-@keyframes shootPulse {
-  0% { box-shadow: 0 0 0 0 oklch(0.65 0.18 50 / 0.6); }
-  70% { box-shadow: 0 0 0 20px oklch(0.65 0.18 50 / 0); }
-  100% { box-shadow: 0 0 0 0 oklch(0.65 0.18 50 / 0); }
+@keyframes retro-pulse {
+  0%, 100% { background-color: #ffcc00; }
+  50% { background-color: #ff6600; }
 }
+.retro-pulse { animation: retro-pulse 1s ease-in-out infinite; }
 
-@keyframes fadeInUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
+/* ── Utility overrides ────────────────────────────────────────────────────── */
+.font-retro  { font-family: "Fredoka One", Verdana, Arial, sans-serif !important; }
+.font-pixel  { font-family: "VT323", "Courier New", monospace !important; }
+.font-verdana { font-family: Verdana, Tahoma, Arial, sans-serif !important; }
 
-@keyframes wiggle {
-  0%, 100% { transform: rotate(-3deg); }
-  50% { transform: rotate(3deg); }
-}
-
-.animate-dart-roll { animation: dartRoll 0.6s var(--ease-out) forwards; }
-.animate-dart-bounce { animation: dartBounce 2s ease-in-out infinite; }
-.animate-paper-roll { animation: paperRoll 0.4s ease-in-out; }
-.animate-shoot-pulse { animation: shootPulse 0.6s ease-out; }
-.animate-fade-in-up { animation: fadeInUp 0.4s var(--ease-out) both; }
-.animate-wiggle { animation: wiggle 1s ease-in-out infinite; }
-.animate-unfold { animation: unfold 0.5s var(--ease-out) forwards; }
-
-/* Scrollbar retro */
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: oklch(0.90 0.04 78); }
-::-webkit-scrollbar-thumb { background: oklch(0.65 0.10 65); border-radius: 4px; }
+/* Shadcn overrides for retro look */
+.border-border { border-color: #a8c4e0; }
+.bg-background { background-color: #e8eef5; }
+.text-foreground { color: #333344; }
 
 /* Container */
 .container {
   width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 1rem;
-  padding-right: 1rem;
+  max-width: 960px;  /* Era-accurate: 800-1024px was typical */
+  margin: 0 auto;
+  padding: 0 8px;
 }
-@media (min-width: 640px) { .container { max-width: 640px; } }
-@media (min-width: 768px) { .container { max-width: 768px; } }
-@media (min-width: 1024px) { .container { max-width: 1024px; } }
-@media (min-width: 1280px) { .container { max-width: 1280px; } }
+
+/* Flex min-width fix */
+.flex { min-width: 0; min-height: 0; }
+
+/* Retro hr */
+hr {
+  border: none;
+  border-top: 1px solid #a8c4e0;
+  margin: 6px 0;
+}

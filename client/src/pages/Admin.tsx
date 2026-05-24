@@ -6,6 +6,8 @@ import { PaperDart } from "@/components/PaperDart";
 import { toast } from "sonner";
 import { Link } from "wouter";
 
+const RETRO_FONT = "Verdana, Tahoma, Arial, sans-serif";
+
 const COLORS = [
   { label: "Warm Beige", value: "#e8d5a3" },
   { label: "Amber", value: "#c8a96e" },
@@ -36,6 +38,44 @@ const EMPTY_FORM: SponsorFormData = {
   goldenChance: 0.05,
   prizeText: "",
   prizeClaimUrl: "https://",
+};
+
+// Retro panel header component
+function PanelHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{
+      background: "#003399", color: "#fff",
+      padding: "4px 10px", fontSize: 12, fontWeight: "bold",
+      fontFamily: RETRO_FONT, borderBottom: "1px solid #001a66",
+      display: "flex", alignItems: "center", gap: 6,
+    }}>
+      {children}
+    </div>
+  );
+}
+
+// Retro panel box
+function Panel({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+  return (
+    <div style={{
+      border: "1px solid #aaa", background: "#fff",
+      marginBottom: 10, ...style,
+    }}>
+      {children}
+    </div>
+  );
+}
+
+// Retro input style
+const inputStyle: React.CSSProperties = {
+  width: "100%", border: "1px solid #999", padding: "3px 6px",
+  fontSize: 12, fontFamily: RETRO_FONT, background: "#fff",
+  boxSizing: "border-box",
+};
+
+const labelStyle: React.CSSProperties = {
+  fontSize: 11, fontWeight: "bold", color: "#333",
+  fontFamily: RETRO_FONT, display: "block", marginBottom: 2,
 };
 
 export default function Admin() {
@@ -94,58 +134,36 @@ export default function Admin() {
       toast.error("Vul alle verplichte velden in.");
       return;
     }
-
     if (editingId) {
       await updateMutation.mutateAsync({
-        id: editingId,
-        name: form.name,
-        message: form.message,
-        clickUrl: form.clickUrl,
-        color: form.color,
+        id: editingId, name: form.name, message: form.message,
+        clickUrl: form.clickUrl, color: form.color,
         goldenChance: form.goldenChance,
         prizeText: form.prizeText || null,
         prizeClaimUrl: form.prizeClaimUrl && form.prizeClaimUrl !== "https://" ? form.prizeClaimUrl : null,
       });
-      // Upload logo if changed
       if (logoFile) {
         const base64 = await fileToBase64(logoFile);
-        await uploadLogoMutation.mutateAsync({
-          sponsorId: editingId,
-          base64,
-          mimeType: logoFile.type,
-          filename: logoFile.name,
-        });
+        await uploadLogoMutation.mutateAsync({ sponsorId: editingId, base64, mimeType: logoFile.type, filename: logoFile.name });
       }
     } else {
       const { id } = await createMutation.mutateAsync({
-        name: form.name,
-        message: form.message,
-        clickUrl: form.clickUrl,
-        color: form.color,
-        goldenChance: form.goldenChance,
+        name: form.name, message: form.message, clickUrl: form.clickUrl,
+        color: form.color, goldenChance: form.goldenChance,
         prizeText: form.prizeText || undefined,
         prizeClaimUrl: form.prizeClaimUrl && form.prizeClaimUrl !== "https://" ? form.prizeClaimUrl : undefined,
       });
-      // Upload logo if provided
       if (logoFile && id) {
         const base64 = await fileToBase64(logoFile);
-        await uploadLogoMutation.mutateAsync({
-          sponsorId: id,
-          base64,
-          mimeType: logoFile.type,
-          filename: logoFile.name,
-        });
+        await uploadLogoMutation.mutateAsync({ sponsorId: id, base64, mimeType: logoFile.type, filename: logoFile.name });
       }
     }
   };
 
   const handleEdit = (sponsor: any) => {
     setForm({
-      name: sponsor.name,
-      message: sponsor.message,
-      clickUrl: sponsor.clickUrl,
-      color: sponsor.color,
-      logoUrl: sponsor.logoUrl,
+      name: sponsor.name, message: sponsor.message, clickUrl: sponsor.clickUrl,
+      color: sponsor.color, logoUrl: sponsor.logoUrl,
       goldenChance: sponsor.goldenChance ?? 0.05,
       prizeText: sponsor.prizeText ?? "",
       prizeClaimUrl: sponsor.prizeClaimUrl ?? "https://",
@@ -156,385 +174,508 @@ export default function Admin() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Auth guard
+  // Auth guard — loading
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "oklch(0.96 0.03 78)" }}>
-        <div className="animate-spin text-4xl">🎯</div>
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#e8e8e8", fontFamily: RETRO_FONT }}>
+        <div style={{ fontSize: 32 }}>⏳ Laden...</div>
       </div>
     );
   }
 
+  // Auth guard — not logged in
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-4" style={{ background: "oklch(0.96 0.03 78)" }}>
-        <PaperDart width={120} height={40} />
-        <div className="paper-card rounded-2xl p-8 text-center max-w-sm">
-          <h2 className="font-display text-2xl mb-2" style={{ color: "#3d2800" }}>Admin toegang</h2>
-          <p className="font-retro text-sm mb-4" style={{ color: "#8b6914" }}>Log in om sponsors te beheren</p>
-          <a href={getLoginUrl()} className="btn-retro block py-3 px-6 rounded-xl font-display text-lg text-center"
-            style={{ background: "oklch(0.52 0.18 40)", color: "#fff", textDecoration: "none" }}>
-            Inloggen
-          </a>
+      <div style={{ minHeight: "100vh", background: "#e8e8e8", fontFamily: RETRO_FONT }}>
+        {/* Hyves-style header */}
+        <div style={{ background: "#003399", borderBottom: "3px solid #ffcc00", padding: "4px 12px", display: "flex", alignItems: "center", gap: 8 }}>
+          <PaperDart width={55} height={11} />
+          <span style={{ color: "#ffcc00", fontWeight: "bold", fontSize: 14 }}>Pijltjesschieten.nl</span>
+          <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, marginLeft: 4 }}>— Admin Panel</span>
+        </div>
+        <div style={{ maxWidth: 400, margin: "60px auto", padding: "0 16px" }}>
+          <Panel>
+            <PanelHeader>🔒 Admin toegang vereist</PanelHeader>
+            <div style={{ padding: 20, textAlign: "center" }}>
+              <div style={{ fontSize: 48, marginBottom: 12 }}>🎯</div>
+              <p style={{ fontSize: 12, color: "#333", marginBottom: 16, fontFamily: RETRO_FONT }}>
+                Log in om sponsors en pijltjes te beheren.
+              </p>
+              <a href={getLoginUrl()} style={{
+                display: "inline-block", background: "#003399", color: "#ffcc00",
+                fontWeight: "bold", fontSize: 13, padding: "6px 20px",
+                border: "2px solid #001a66", textDecoration: "none", fontFamily: RETRO_FONT,
+              }}>
+                Inloggen »
+              </a>
+            </div>
+          </Panel>
         </div>
       </div>
     );
   }
 
+  // Auth guard — not admin
   if (user?.role !== "admin") {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-4" style={{ background: "oklch(0.96 0.03 78)" }}>
-        <div className="paper-card rounded-2xl p-8 text-center max-w-sm">
-          <h2 className="font-display text-2xl mb-2" style={{ color: "#3d2800" }}>Geen toegang</h2>
-          <p className="font-retro text-sm mb-4" style={{ color: "#8b6914" }}>
-            Je hebt geen admin rechten. Vraag de eigenaar om je te promoveren.
-          </p>
-          <Link href="/">
-            <button className="btn-retro py-2 px-4 rounded-lg font-display" style={{ background: "oklch(0.82 0.16 85)", color: "#3d2800" }}>
-              ← Terug
-            </button>
-          </Link>
+      <div style={{ minHeight: "100vh", background: "#e8e8e8", fontFamily: RETRO_FONT }}>
+        <div style={{ background: "#003399", borderBottom: "3px solid #ffcc00", padding: "4px 12px" }}>
+          <span style={{ color: "#ffcc00", fontWeight: "bold", fontSize: 14 }}>Pijltjesschieten.nl — Admin</span>
+        </div>
+        <div style={{ maxWidth: 400, margin: "60px auto", padding: "0 16px" }}>
+          <Panel>
+            <PanelHeader>⛔ Geen toegang</PanelHeader>
+            <div style={{ padding: 20, textAlign: "center" }}>
+              <p style={{ fontSize: 12, color: "#333", marginBottom: 16, fontFamily: RETRO_FONT }}>
+                Je hebt geen admin rechten. Vraag de eigenaar om je te promoveren.
+              </p>
+              <Link href="/">
+                <button style={{
+                  background: "#ffcc00", color: "#003399", fontWeight: "bold",
+                  border: "2px solid #cc9900", padding: "4px 16px", cursor: "pointer", fontFamily: RETRO_FONT,
+                }}>← Terug</button>
+              </Link>
+            </div>
+          </Panel>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen" style={{ background: "oklch(0.96 0.03 78)" }}>
-      {/* Header */}
-      <header style={{ background: "oklch(0.52 0.18 40)", borderBottom: "4px solid oklch(0.35 0.12 40)" }}>
-        <div className="container py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/">
-              <button className="btn-retro rounded-lg px-3 py-1.5 text-sm font-display"
-                style={{ background: "oklch(0.82 0.16 85)", color: "#3d2800" }}>
-                ← Pijltjesschieten.nl
-              </button>
-            </Link>
-            <h1 className="font-display text-2xl text-white">Admin Panel</h1>
+    <div style={{ minHeight: "100vh", background: "#e8e8e8", fontFamily: RETRO_FONT }}>
+      {/* ── Hyves-style top header ─────────────────────────────────────────── */}
+      <div style={{
+        background: "#003399", borderBottom: "3px solid #ffcc00",
+        padding: "4px 12px", display: "flex", alignItems: "center", gap: 8,
+      }}>
+        <Link href="/">
+          <div style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+            <PaperDart width={55} height={11} />
+            <span style={{ color: "#ffcc00", fontWeight: "bold", fontSize: 13, fontFamily: RETRO_FONT }}>
+              Pijltjesschieten.nl
+            </span>
           </div>
-          <div className="font-retro text-xs text-amber-200">
-            Welkom, {user.name ?? "Admin"}
-          </div>
+        </Link>
+        <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.3)", margin: "0 4px" }} />
+        <span style={{ color: "#fff", fontWeight: "bold", fontSize: 13 }}>Admin Panel</span>
+        <div style={{ marginLeft: "auto", fontSize: 11, color: "rgba(255,255,255,0.7)" }}>
+          Welkom, {user.name ?? "Admin"}
         </div>
-      </header>
+      </div>
 
-      <div className="container py-8 space-y-8">
-        {/* Stats */}
-          {stats && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {[
-              { label: "Totaal pijltjes", value: stats.total, emoji: "🎯" },
-              { label: "Vandaag geschoten", value: stats.today, emoji: "🔥" },
-              { label: "Gouden pijltjes", value: (stats as any).golden ?? 0, emoji: "🏆" },
-              { label: "Actieve sponsors", value: sponsors?.filter(s => s.active).length ?? 0, emoji: "🏷️" },
-            ].map(stat => (
-              <div key={stat.label} className="paper-card rounded-xl p-4 text-center">
-                <div className="text-3xl mb-1">{stat.emoji}</div>
-                <div className="font-display text-2xl" style={{ color: "#3d2800" }}>{stat.value}</div>
-                <div className="font-retro text-xs opacity-60" style={{ color: "#8b6914" }}>{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        )}
+      {/* ── Hyves-style sub-nav ─────────────────────────────────────────────── */}
+      <div style={{ background: "#001a66", borderBottom: "1px solid #000" }}>
+        <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 8px", display: "flex" }}>
+          {["Overzicht", "Sponsors", "Statistieken"].map((item, i) => (
+            <div key={item} style={{
+              padding: "3px 12px", fontSize: 11, fontWeight: "bold",
+              color: i === 0 ? "#ffcc00" : "rgba(255,255,255,0.7)",
+              cursor: "pointer", borderRight: "1px solid rgba(255,255,255,0.1)",
+              fontFamily: RETRO_FONT,
+            }}>
+              {item}
+            </div>
+          ))}
+          <Link href="/">
+            <div style={{
+              padding: "3px 12px", fontSize: 11, color: "rgba(255,255,255,0.5)",
+              cursor: "pointer", marginLeft: "auto", fontFamily: RETRO_FONT,
+            }}>
+              ← Terug naar site
+            </div>
+          </Link>
+        </div>
+      </div>
 
-        {/* Sponsor form */}
-        <div className="paper-card rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display text-xl" style={{ color: "#3d2800" }}>
-              {editingId ? "✏️ Sponsor bewerken" : "➕ Nieuwe sponsor"}
-            </h2>
-            {!showForm && (
-              <button
-                className="btn-retro rounded-lg px-4 py-2 font-display text-sm"
-                style={{ background: "oklch(0.52 0.18 40)", color: "#fff" }}
-                onClick={() => setShowForm(true)}
-              >
-                + Toevoegen
-              </button>
-            )}
-          </div>
+      {/* ── Main content ────────────────────────────────────────────────────── */}
+      <div style={{ maxWidth: 980, margin: "0 auto", padding: "8px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: 8 }}>
 
-          {showForm && (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid sm:grid-cols-2 gap-4">
-                {/* Name */}
-                <div>
-                  <label className="font-retro text-xs uppercase tracking-wider block mb-1" style={{ color: "#5c3d1e" }}>
-                    Naam *
-                  </label>
-                  <input
-                    type="text"
-                    value={form.name}
-                    onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                    placeholder="Bijv. Wehkamp"
-                    required
-                    className="w-full rounded-lg px-3 py-2 font-retro text-sm border-2 border-amber-300 bg-amber-50 focus:outline-none focus:border-amber-500"
-                    style={{ color: "#3d2800" }}
-                  />
-                </div>
-
-                {/* Click URL */}
-                <div>
-                  <label className="font-retro text-xs uppercase tracking-wider block mb-1" style={{ color: "#5c3d1e" }}>
-                    Website URL *
-                  </label>
-                  <input
-                    type="url"
-                    value={form.clickUrl}
-                    onChange={e => setForm(f => ({ ...f, clickUrl: e.target.value }))}
-                    placeholder="https://www.mijnmerk.nl"
-                    required
-                    className="w-full rounded-lg px-3 py-2 font-retro text-sm border-2 border-amber-300 bg-amber-50 focus:outline-none focus:border-amber-500"
-                    style={{ color: "#3d2800" }}
-                  />
-                </div>
-              </div>
-
-              {/* Message */}
-              <div>
-                <label className="font-retro text-xs uppercase tracking-wider block mb-1" style={{ color: "#5c3d1e" }}>
-                  Boodschap *
-                </label>
-                <textarea
-                  value={form.message}
-                  onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
-                  placeholder="Jouw inspirerende boodschap of advertentietekst..."
-                  required
-                  rows={3}
-                  className="w-full rounded-lg px-3 py-2 font-retro text-sm border-2 border-amber-300 bg-amber-50 focus:outline-none focus:border-amber-500 resize-none"
-                  style={{ color: "#3d2800" }}
-                />
-              </div>
-
-              {/* Color picker */}
-              <div>
-                <label className="font-retro text-xs uppercase tracking-wider block mb-2" style={{ color: "#5c3d1e" }}>
-                  Pijltje kleur
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {COLORS.map(c => (
-                    <button
-                      key={c.value}
-                      type="button"
-                      title={c.label}
-                      className="w-8 h-8 rounded-full border-2 transition-transform hover:scale-110"
-                      style={{
-                        background: c.value,
-                        borderColor: form.color === c.value ? "#3d2800" : "rgba(0,0,0,0.2)",
-                        transform: form.color === c.value ? "scale(1.2)" : undefined,
-                        boxShadow: form.color === c.value ? "0 0 0 2px #3d2800" : undefined,
-                      }}
-                      onClick={() => setForm(f => ({ ...f, color: c.value }))}
-                    />
+          {/* Left column: Stats + Form + Sponsors list */}
+          <div>
+            {/* Stats panel */}
+            {stats && (
+              <Panel>
+                <PanelHeader>📊 Statistieken</PanelHeader>
+                <div style={{ padding: 8, display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
+                  {[
+                    { label: "Totaal pijltjes", value: stats.total, emoji: "🎯" },
+                    { label: "Vandaag", value: stats.today, emoji: "🔥" },
+                    { label: "Gouden pijltjes", value: (stats as any).golden ?? 0, emoji: "🏆" },
+                    { label: "Actieve sponsors", value: sponsors?.filter(s => s.active).length ?? 0, emoji: "🏷️" },
+                  ].map(stat => (
+                    <div key={stat.label} style={{
+                      border: "1px solid #ccc", background: "#f5f5f5",
+                      padding: "8px 4px", textAlign: "center",
+                    }}>
+                      <div style={{ fontSize: 20 }}>{stat.emoji}</div>
+                      <div style={{ fontSize: 20, fontWeight: "bold", color: "#003399", fontFamily: RETRO_FONT }}>{stat.value}</div>
+                      <div style={{ fontSize: 9, color: "#666", fontFamily: RETRO_FONT }}>{stat.label}</div>
+                    </div>
                   ))}
                 </div>
-              </div>
+              </Panel>
+            )}
 
-              {/* Logo upload */}
-              <div>
-                <label className="font-retro text-xs uppercase tracking-wider block mb-2" style={{ color: "#5c3d1e" }}>
-                  Logo (optioneel)
-                </label>
-                <div className="flex items-center gap-3">
-                  {logoPreview && (
-                    <img src={logoPreview} alt="Logo preview" className="w-12 h-12 object-contain rounded-lg border-2 border-amber-300 bg-white p-1" />
-                  )}
+            {/* Sponsor form */}
+            <Panel>
+              <PanelHeader>
+                {editingId ? "✏️ Sponsor bewerken" : "➕ Nieuwe sponsor toevoegen"}
+                {!showForm && (
                   <button
-                    type="button"
-                    className="btn-retro rounded-lg px-3 py-2 font-retro text-sm"
-                    style={{ background: "oklch(0.91 0.05 80)", color: "#3d2800" }}
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    📎 Logo uploaden
-                  </button>
-                  <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoChange} />
-                </div>
-              </div>
-
-              {/* Golden Dart Section */}
-              <div className="rounded-xl p-4 space-y-3" style={{ background: "linear-gradient(135deg, rgba(255,215,0,0.1), rgba(200,169,110,0.15))", border: "2px solid rgba(255,215,0,0.4)" }}>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xl">🏆</span>
-                  <h3 className="font-display text-base" style={{ color: "#3d2800" }}>Gouden Pijltje Instellingen</h3>
-                </div>
-
-                {/* Golden chance slider */}
-                <div>
-                  <label className="font-retro text-xs uppercase tracking-wider block mb-1" style={{ color: "#5c3d1e" }}>
-                    Kans op gouden pijltje: <strong>{Math.round(form.goldenChance * 100)}%</strong>
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="0.5"
-                    step="0.01"
-                    value={form.goldenChance}
-                    onChange={e => setForm(f => ({ ...f, goldenChance: parseFloat(e.target.value) }))}
-                    className="w-full accent-amber-500"
-                  />
-                  <div className="flex justify-between font-retro text-xs opacity-50" style={{ color: "#8b6914" }}>
-                    <span>0% (geen)</span><span>50% (elk 2e pijltje)</span>
-                  </div>
-                </div>
-
-                {/* Prize text */}
-                <div>
-                  <label className="font-retro text-xs uppercase tracking-wider block mb-1" style={{ color: "#5c3d1e" }}>
-                    Prijs tekst
-                  </label>
-                  <input
-                    type="text"
-                    value={form.prizeText}
-                    onChange={e => setForm(f => ({ ...f, prizeText: e.target.value }))}
-                    placeholder="Bijv. Win €10 korting op je volgende bestelling!"
-                    className="w-full rounded-lg px-3 py-2 font-retro text-sm border-2 border-amber-300 bg-amber-50 focus:outline-none focus:border-amber-500"
-                    style={{ color: "#3d2800" }}
-                  />
-                </div>
-
-                {/* Prize claim URL */}
-                <div>
-                  <label className="font-retro text-xs uppercase tracking-wider block mb-1" style={{ color: "#5c3d1e" }}>
-                    Prijs claim URL
-                  </label>
-                  <input
-                    type="url"
-                    value={form.prizeClaimUrl}
-                    onChange={e => setForm(f => ({ ...f, prizeClaimUrl: e.target.value }))}
-                    placeholder="https://www.mijnmerk.nl/prijs"
-                    className="w-full rounded-lg px-3 py-2 font-retro text-sm border-2 border-amber-300 bg-amber-50 focus:outline-none focus:border-amber-500"
-                    style={{ color: "#3d2800" }}
-                  />
-                </div>
-              </div>
-
-              {/* Preview */}
-              <div className="rounded-xl p-4 text-center" style={{ background: "rgba(0,0,0,0.05)" }}>
-                <p className="font-retro text-xs mb-2 opacity-60" style={{ color: "#5c3d1e" }}>Voorbeeld pijltje</p>
-                <div className="flex justify-center">
-                  <PaperDart
-                    sponsor={form.name ? {
-                      id: 0,
-                      name: form.name,
-                      logoUrl: logoPreview,
-                      color: form.color,
-                      message: form.message,
-                      clickUrl: form.clickUrl,
-                    } : null}
-                    width={160}
-                    height={52}
-                  />
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-3">
-                <button
-                  type="submit"
-                  disabled={createMutation.isPending || updateMutation.isPending}
-                  className="btn-retro flex-1 py-3 rounded-xl font-display text-lg"
-                  style={{ background: "oklch(0.52 0.18 40)", color: "#fff" }}
-                >
-                  {createMutation.isPending || updateMutation.isPending ? "Opslaan..." : editingId ? "Bijwerken" : "Aanmaken"}
-                </button>
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  className="btn-retro px-4 py-3 rounded-xl font-display"
-                  style={{ background: "oklch(0.91 0.05 80)", color: "#3d2800" }}
-                >
-                  Annuleren
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
-
-        {/* Sponsors list */}
-        <div className="paper-card rounded-2xl p-6">
-          <h2 className="font-display text-xl mb-4" style={{ color: "#3d2800" }}>
-            🏷️ Sponsors ({sponsors?.length ?? 0})
-          </h2>
-
-          {sponsorsLoading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="h-16 rounded-xl bg-amber-100 animate-pulse" />
-              ))}
-            </div>
-          ) : sponsors?.length === 0 ? (
-            <p className="font-retro text-center py-8 opacity-50" style={{ color: "#8b6914" }}>
-              Nog geen sponsors. Voeg er een toe!
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {sponsors?.map(sponsor => (
-                <div
-                  key={sponsor.id}
-                  className="flex items-center gap-4 rounded-xl p-3 border-2"
-                  style={{ background: sponsor.color + "33", borderColor: sponsor.color }}
-                >
-                  {/* Dart preview */}
-                  <PaperDart
-                    sponsor={{
-                      id: sponsor.id,
-                      name: sponsor.name,
-                      logoUrl: sponsor.logoUrl,
-                      color: sponsor.color,
-                      message: sponsor.message,
-                      clickUrl: sponsor.clickUrl,
-                    }}
-                    width={80}
-                    height={26}
-                  />
-
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-display text-base truncate" style={{ color: "#3d2800" }}>{sponsor.name}</p>
-                    <p className="font-retro text-xs truncate opacity-60" style={{ color: "#5c3d1e" }}>
-                      {sponsor.clickUrl}
-                    </p>
-                  </div>
-
-                  {/* Status badge */}
-                  <span
-                    className="font-retro text-xs px-2 py-0.5 rounded-full border"
+                    onClick={() => setShowForm(true)}
                     style={{
-                      background: sponsor.active ? "#d4f5d4" : "#f5d4d4",
-                      color: sponsor.active ? "#1a5c1a" : "#5c1a1a",
-                      borderColor: sponsor.active ? "#1a5c1a" : "#5c1a1a",
+                      marginLeft: "auto", background: "#ffcc00", color: "#003399",
+                      border: "1px solid #cc9900", padding: "1px 8px",
+                      fontSize: 11, fontWeight: "bold", cursor: "pointer", fontFamily: RETRO_FONT,
                     }}
                   >
-                    {sponsor.active ? "Actief" : "Inactief"}
-                  </span>
+                    + Toevoegen
+                  </button>
+                )}
+              </PanelHeader>
 
-                  {/* Actions */}
-                  <div className="flex gap-2">
-                    <button
-                      className="btn-retro rounded-lg px-3 py-1.5 font-retro text-xs"
-                      style={{ background: "oklch(0.82 0.16 85)", color: "#3d2800" }}
-                      onClick={() => handleEdit(sponsor)}
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      className="btn-retro rounded-lg px-3 py-1.5 font-retro text-xs"
-                      style={{ background: "#f5d4d4", color: "#5c1a1a" }}
-                      onClick={() => {
-                        if (confirm(`Sponsor "${sponsor.name}" verwijderen?`)) {
-                          deleteMutation.mutate({ id: sponsor.id });
-                        }
-                      }}
-                    >
-                      🗑️
-                    </button>
+              {showForm && (
+                <div style={{ padding: 10 }}>
+                  <form onSubmit={handleSubmit}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
+                      <div>
+                        <label style={labelStyle}>Naam sponsor *</label>
+                        <input
+                          type="text" value={form.name} required
+                          onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                          placeholder="Bijv. Wehkamp"
+                          style={inputStyle}
+                        />
+                      </div>
+                      <div>
+                        <label style={labelStyle}>Website URL *</label>
+                        <input
+                          type="url" value={form.clickUrl} required
+                          onChange={e => setForm(f => ({ ...f, clickUrl: e.target.value }))}
+                          placeholder="https://www.mijnmerk.nl"
+                          style={inputStyle}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ marginBottom: 8 }}>
+                      <label style={labelStyle}>Boodschap (zichtbaar als pijltje wordt geopend) *</label>
+                      <textarea
+                        value={form.message} required rows={3}
+                        onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
+                        placeholder="Jouw inspirerende boodschap of advertentietekst..."
+                        style={{ ...inputStyle, resize: "vertical" }}
+                      />
+                    </div>
+
+                    {/* Color picker */}
+                    <div style={{ marginBottom: 8 }}>
+                      <label style={labelStyle}>Pijltje kleur</label>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        {COLORS.map(c => (
+                          <button
+                            key={c.value} type="button" title={c.label}
+                            onClick={() => setForm(f => ({ ...f, color: c.value }))}
+                            style={{
+                              width: 24, height: 24, background: c.value, cursor: "pointer",
+                              border: form.color === c.value ? "3px solid #003399" : "2px solid #999",
+                              outline: form.color === c.value ? "1px solid #fff" : "none",
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Logo upload */}
+                    <div style={{ marginBottom: 8 }}>
+                      <label style={labelStyle}>Logo (optioneel)</label>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        {logoPreview && (
+                          <img src={logoPreview} alt="Logo preview" style={{
+                            width: 40, height: 40, objectFit: "contain",
+                            border: "1px solid #ccc", background: "#fff", padding: 2,
+                          }} />
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          style={{
+                            background: "#f0f0f0", border: "1px solid #999",
+                            padding: "3px 10px", fontSize: 11, cursor: "pointer", fontFamily: RETRO_FONT,
+                          }}
+                        >
+                          📎 Logo uploaden
+                        </button>
+                        <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleLogoChange} />
+                      </div>
+                    </div>
+
+                    {/* Golden Dart Section */}
+                    <div style={{
+                      border: "2px solid #e6a800", background: "#fffbe6",
+                      padding: 10, marginBottom: 8,
+                    }}>
+                      <div style={{ fontSize: 12, fontWeight: "bold", color: "#8B6914", marginBottom: 8, fontFamily: RETRO_FONT }}>
+                        🏆 Gouden Pijltje Instellingen
+                      </div>
+
+                      <div style={{ marginBottom: 8 }}>
+                        <label style={labelStyle}>
+                          Kans op gouden pijltje: <strong>{Math.round(form.goldenChance * 100)}%</strong>
+                        </label>
+                        <input
+                          type="range" min="0" max="0.5" step="0.01"
+                          value={form.goldenChance}
+                          onChange={e => setForm(f => ({ ...f, goldenChance: parseFloat(e.target.value) }))}
+                          style={{ width: "100%" }}
+                        />
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: "#999", fontFamily: RETRO_FONT }}>
+                          <span>0% (geen)</span><span>50% (elk 2e pijltje)</span>
+                        </div>
+                      </div>
+
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                        <div>
+                          <label style={labelStyle}>Prijs tekst</label>
+                          <input
+                            type="text" value={form.prizeText}
+                            onChange={e => setForm(f => ({ ...f, prizeText: e.target.value }))}
+                            placeholder="Win €10 korting!"
+                            style={inputStyle}
+                          />
+                        </div>
+                        <div>
+                          <label style={labelStyle}>Prijs claim URL</label>
+                          <input
+                            type="url" value={form.prizeClaimUrl}
+                            onChange={e => setForm(f => ({ ...f, prizeClaimUrl: e.target.value }))}
+                            placeholder="https://mijnmerk.nl/prijs"
+                            style={inputStyle}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Preview */}
+                    <div style={{
+                      background: "#f5f5f5", border: "1px solid #ccc",
+                      padding: 8, textAlign: "center", marginBottom: 8,
+                    }}>
+                      <div style={{ fontSize: 10, color: "#666", marginBottom: 4, fontFamily: RETRO_FONT }}>Voorbeeld pijltje:</div>
+                      <div style={{ display: "flex", justifyContent: "center" }}>
+                        <PaperDart
+                          sponsor={form.name ? {
+                            id: 0, name: form.name, logoUrl: logoPreview,
+                            color: form.color, message: form.message, clickUrl: form.clickUrl,
+                          } : null}
+                          width={160} height={32}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button
+                        type="submit"
+                        disabled={createMutation.isPending || updateMutation.isPending}
+                        style={{
+                          flex: 1, background: "#003399", color: "#ffcc00",
+                          border: "2px solid #001a66", padding: "5px 0",
+                          fontWeight: "bold", fontSize: 13, cursor: "pointer", fontFamily: RETRO_FONT,
+                        }}
+                      >
+                        {createMutation.isPending || updateMutation.isPending ? "Opslaan..." : editingId ? "Bijwerken" : "Aanmaken"}
+                      </button>
+                      <button
+                        type="button" onClick={resetForm}
+                        style={{
+                          background: "#f0f0f0", border: "1px solid #999",
+                          padding: "5px 16px", cursor: "pointer", fontSize: 12, fontFamily: RETRO_FONT,
+                        }}
+                      >
+                        Annuleren
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+            </Panel>
+
+            {/* Sponsors list */}
+            <Panel>
+              <PanelHeader>🏷️ Sponsors ({sponsors?.length ?? 0})</PanelHeader>
+              <div style={{ padding: 0 }}>
+                {sponsorsLoading ? (
+                  <div style={{ padding: 16, textAlign: "center", fontSize: 12, color: "#666", fontFamily: RETRO_FONT }}>
+                    Laden...
+                  </div>
+                ) : sponsors?.length === 0 ? (
+                  <div style={{ padding: 16, textAlign: "center", fontSize: 12, color: "#999", fontFamily: RETRO_FONT }}>
+                    Nog geen sponsors. Voeg er een toe!
+                  </div>
+                ) : (
+                  sponsors?.map((sponsor, i) => (
+                    <div key={sponsor.id} style={{
+                      display: "flex", alignItems: "center", gap: 8,
+                      padding: "6px 10px",
+                      borderBottom: i < (sponsors.length - 1) ? "1px solid #eee" : "none",
+                      background: i % 2 === 0 ? "#fff" : "#f9f9f9",
+                    }}>
+                      {/* Dart preview */}
+                      <PaperDart
+                        sponsor={{
+                          id: sponsor.id, name: sponsor.name, logoUrl: sponsor.logoUrl,
+                          color: sponsor.color, message: sponsor.message, clickUrl: sponsor.clickUrl,
+                        }}
+                        width={80} height={16}
+                      />
+
+                      {/* Info */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 12, fontWeight: "bold", color: "#003399", fontFamily: RETRO_FONT, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {sponsor.name}
+                        </div>
+                        <div style={{ fontSize: 10, color: "#666", fontFamily: RETRO_FONT, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {sponsor.clickUrl}
+                        </div>
+                      </div>
+
+                      {/* Status */}
+                      <span style={{
+                        fontSize: 10, padding: "1px 6px", fontFamily: RETRO_FONT,
+                        background: sponsor.active ? "#d4f5d4" : "#f5d4d4",
+                        color: sponsor.active ? "#1a5c1a" : "#5c1a1a",
+                        border: `1px solid ${sponsor.active ? "#1a5c1a" : "#5c1a1a"}`,
+                      }}>
+                        {sponsor.active ? "Actief" : "Inactief"}
+                      </span>
+
+                      {/* Actions */}
+                      <button
+                        onClick={() => handleEdit(sponsor)}
+                        style={{
+                          background: "#ffcc00", border: "1px solid #cc9900",
+                          padding: "2px 8px", fontSize: 11, cursor: "pointer", fontFamily: RETRO_FONT,
+                        }}
+                      >
+                        ✏️ Bewerk
+                      </button>
+                      <button
+                        onClick={() => { if (confirm(`Sponsor "${sponsor.name}" verwijderen?`)) deleteMutation.mutate({ id: sponsor.id }); }}
+                        style={{
+                          background: "#f5d4d4", border: "1px solid #cc0000",
+                          padding: "2px 8px", fontSize: 11, cursor: "pointer", fontFamily: RETRO_FONT,
+                        }}
+                      >
+                        🗑️ Verwijder
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </Panel>
+          </div>
+
+          {/* Right column: Help + info panels */}
+          <div>
+            {/* Startpagina-style info panel */}
+            <Panel>
+              <PanelHeader>ℹ️ Hoe werkt het?</PanelHeader>
+              <div style={{ padding: 8 }}>
+                {[
+                  { icon: "1.", text: "Voeg een sponsor toe met naam, boodschap en logo" },
+                  { icon: "2.", text: "Stel de pijltjeskleur in die past bij het merk" },
+                  { icon: "3.", text: "Optioneel: activeer het Gouden Pijltje voor prijzen" },
+                  { icon: "4.", text: "Bezoekers schieten pijltjes met hun microfoon" },
+                  { icon: "5.", text: "Klik op een pijltje om de sponsor-boodschap te zien" },
+                ].map(item => (
+                  <div key={item.icon} style={{
+                    display: "flex", gap: 6, padding: "4px 0",
+                    borderBottom: "1px solid #eee", fontSize: 11,
+                    color: "#333", fontFamily: RETRO_FONT,
+                  }}>
+                    <span style={{ fontWeight: "bold", color: "#003399", minWidth: 16 }}>{item.icon}</span>
+                    <span>{item.text}</span>
+                  </div>
+                ))}
+              </div>
+            </Panel>
+
+            {/* RTB info */}
+            <Panel>
+              <PanelHeader>🎯 RTB Integratie</PanelHeader>
+              <div style={{ padding: 8 }}>
+                <p style={{ fontSize: 11, color: "#333", fontFamily: RETRO_FONT, marginBottom: 8 }}>
+                  Voeg deze snippet toe aan elke website om pijltjes te laten vliegen:
+                </p>
+                <div style={{
+                  background: "#1a1a1a", color: "#00ff88", padding: 8,
+                  fontSize: 10, fontFamily: "Courier New, monospace",
+                  border: "1px solid #333", overflowX: "auto",
+                }}>
+                  {'<script src="https://pijltjesschieten.nl/embed.js"></script>'}
+                </div>
+                <p style={{ fontSize: 10, color: "#666", fontFamily: RETRO_FONT, marginTop: 6 }}>
+                  Pijltjes vliegen over bestaande RTB-banners heen via z-index overlay.
+                </p>
+              </div>
+            </Panel>
+
+            {/* Gouden pijltje info */}
+            <Panel>
+              <PanelHeader>🏆 Gouden Pijltje</PanelHeader>
+              <div style={{ padding: 8 }}>
+                <p style={{ fontSize: 11, color: "#333", fontFamily: RETRO_FONT, marginBottom: 6 }}>
+                  Een klein percentage pijltjes heeft een gouden binnenkant. Als een bezoeker zo'n pijltje opent, wint hij een prijs!
+                </p>
+                <div style={{ background: "#fffbe6", border: "1px solid #e6a800", padding: 6 }}>
+                  <div style={{ fontSize: 11, fontWeight: "bold", color: "#8B6914", fontFamily: RETRO_FONT }}>
+                    💡 Tip voor sponsors:
+                  </div>
+                  <div style={{ fontSize: 10, color: "#666", fontFamily: RETRO_FONT, marginTop: 4 }}>
+                    Stel een kans in van 5-10% voor een goede balans tussen engagement en kosten.
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            </Panel>
+
+            {/* Quick links */}
+            <Panel>
+              <PanelHeader>🔗 Snelle links</PanelHeader>
+              <div style={{ padding: 8 }}>
+                {[
+                  { label: "← Terug naar site", href: "/" },
+                  { label: "🗞️ Demo NU.nl pagina", href: "/demo" },
+                ].map(link => (
+                  <Link key={link.label} href={link.href}>
+                    <div style={{
+                      padding: "4px 0", fontSize: 11, color: "#003399",
+                      fontFamily: RETRO_FONT, cursor: "pointer",
+                      borderBottom: "1px solid #eee",
+                      textDecoration: "underline",
+                    }}
+                      onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.color = "#cc0000"}
+                      onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.color = "#003399"}
+                    >
+                      {link.label}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </Panel>
+          </div>
         </div>
+      </div>
+
+      {/* Footer */}
+      <div style={{
+        background: "#003399", borderTop: "3px solid #ffcc00",
+        padding: "8px 12px", marginTop: 16, textAlign: "center",
+        fontSize: 10, color: "rgba(255,255,255,0.6)", fontFamily: RETRO_FONT,
+      }}>
+        Pijltjesschieten.nl Admin Panel — © 2025 — Alle rechten voorbehouden
       </div>
     </div>
   );
