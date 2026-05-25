@@ -133,8 +133,8 @@ export function PaperDart({
           <div
             style={{
               position: "absolute",
-              // Place logo just behind the tip: right edge at ~93% of dart width
-              right: Math.round(w * 0.07),
+              // Place logo at the wide/back end (left side), small gap from edge
+              left: Math.round(w * 0.04),
               top: "50%",
               transform: flippedForRTL ? "translateY(-50%) rotate(-180deg)" : "translateY(-50%)",
               width: Math.max(16, Math.round(h * 0.85)),
@@ -160,7 +160,7 @@ export function PaperDart({
           <div
             style={{
               position: "absolute",
-              right: Math.round(w * 0.07),
+              left: Math.round(w * 0.04),
               top: "50%",
               transform: flippedForRTL ? "translateY(-50%) rotate(-180deg)" : "translateY(-50%)",
               background: sponsor.color,
