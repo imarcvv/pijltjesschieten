@@ -5,6 +5,7 @@ interface DartUnfoldModalProps {
   sponsor: DartSponsor | null;
   isGolden?: boolean;
   shooterName?: string | null;
+  quote?: { text: string; author: string } | null;
   onClose: () => void;
 }
 
@@ -79,7 +80,7 @@ function ConfettiCanvas() {
  * white background, horizontal text lines, sponsor colour band at top,
  * sponsor message as the "ad" printed on the page.
  */
-export function DartUnfoldModal({ sponsor, isGolden = false, shooterName, onClose }: DartUnfoldModalProps) {
+export function DartUnfoldModal({ sponsor, isGolden = false, shooterName, quote, onClose }: DartUnfoldModalProps) {
   const [phase, setPhase] = useState<"cylinder" | "unrolling" | "strip" | "closing">("cylinder");
   const [showConfetti, setShowConfetti] = useState(false);
 
@@ -161,7 +162,9 @@ export function DartUnfoldModal({ sponsor, isGolden = false, shooterName, onClos
             {/* Sponsor colour header band — like the top of a magazine ad */}
             <div
               style={{
-                background: isGolden
+                background: quote
+                  ? "linear-gradient(90deg, #2c5282, #4a7ab5, #2c5282)"
+                  : isGolden
                   ? "linear-gradient(90deg, #8B6914, #FFD700, #8B6914)"
                   : sponsorColor,
                 padding: "10px 16px",
@@ -170,7 +173,7 @@ export function DartUnfoldModal({ sponsor, isGolden = false, shooterName, onClos
                 gap: 10,
               }}
             >
-              {/* Sponsor logo or initial */}
+              {/* Quote icon or sponsor logo or initial */}
               <div
                 style={{
                   width: 36, height: 36,
@@ -178,13 +181,13 @@ export function DartUnfoldModal({ sponsor, isGolden = false, shooterName, onClos
                   background: "rgba(255,255,255,0.25)",
                   border: "2px solid rgba(255,255,255,0.5)",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 16, fontWeight: "bold",
+                  fontSize: quote ? 20 : 16, fontWeight: "bold",
                   color: isGolden ? "#3d2800" : "white",
                   flexShrink: 0,
                   overflow: "hidden",
                 }}
               >
-                {sponsor?.logoUrl ? (
+                {quote ? "💬" : sponsor?.logoUrl ? (
                   <img src={sponsor.logoUrl} alt={sponsor.name} style={{ width: 32, height: 32, objectFit: "contain" }} />
                 ) : (
                   sponsor?.name?.[0]?.toUpperCase() ?? "?"
@@ -199,7 +202,7 @@ export function DartUnfoldModal({ sponsor, isGolden = false, shooterName, onClos
                     lineHeight: 1.1,
                   }}
                 >
-                  {sponsor?.name ?? "Pijltjesschieten.nl"}
+                  {quote ? "Inspiratie" : (sponsor?.name ?? "Pijltjesschieten.nl")}
                 </div>
                 <div
                   style={{
@@ -210,7 +213,7 @@ export function DartUnfoldModal({ sponsor, isGolden = false, shooterName, onClos
                     textTransform: "uppercase",
                   }}
                 >
-                  📰 Uitgerold pijltje
+                  {quote ? "✨ Inspirerend pijltje" : "📰 Uitgerold pijltje"}
                 </div>
               </div>
               {/* Close button */}
@@ -234,10 +237,10 @@ export function DartUnfoldModal({ sponsor, isGolden = false, shooterName, onClos
             </div>
 
             {/* ── Magazine page body — the printed ad ─────────────────────── */}
-            <div style={{ padding: "14px 16px", background: isGolden ? "transparent" : "#F8F5EF" }}>
+            <div style={{ padding: "14px 16px", background: isGolden ? "transparent" : quote ? "#EEF2FF" : "#F8F5EF" }}>
 
               {/* Simulated magazine text lines (decorative, like programme listings) */}
-              {!isGolden && (
+              {!isGolden && !quote && (
                 <div style={{ marginBottom: 10, opacity: 0.3 }}>
                   {[80, 65, 90, 55, 75].map((w, i) => (
                     <div
@@ -250,6 +253,54 @@ export function DartUnfoldModal({ sponsor, isGolden = false, shooterName, onClos
                         marginBottom: 4,
                       }}
                     />
+                  ))}
+                </div>
+              )}
+
+              {/* ── QUOTE CONTENT — shown instead of sponsor ad ─────────────── */}
+              {quote && phase === "strip" && (
+                <div style={{ animation: "fadeInUp 0.4s ease both" }}>
+                  {/* Large quotation mark */}
+                  <div style={{
+                    fontFamily: "Georgia, serif",
+                    fontSize: 64,
+                    color: "#4a7ab5",
+                    lineHeight: 0.8,
+                    marginBottom: 4,
+                    opacity: 0.4,
+                  }}>&ldquo;</div>
+                  {/* Quote text */}
+                  <p style={{
+                    fontFamily: "Verdana, Tahoma, sans-serif",
+                    fontSize: 15,
+                    lineHeight: 1.6,
+                    color: "#1a2a4a",
+                    margin: "0 0 12px 0",
+                    fontStyle: "italic",
+                    animation: "fadeInUp 0.4s ease both 0.08s",
+                    animationFillMode: "both",
+                  }}>
+                    {quote.text}
+                  </p>
+                  {/* Author */}
+                  <div style={{
+                    fontFamily: "'Fredoka One', cursive",
+                    fontSize: 14,
+                    color: "#4a7ab5",
+                    textAlign: "right",
+                    animation: "fadeInUp 0.4s ease both 0.15s",
+                    animationFillMode: "both",
+                  }}>
+                    — {quote.author}
+                  </div>
+                </div>
+              )}
+
+              {/* Quote skeleton while unrolling */}
+              {quote && phase !== "strip" && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {[90, 75, 85, 60].map((w, i) => (
+                    <div key={i} style={{ height: 8, width: `${w}%`, background: "#c7d2fe", borderRadius: 3 }} />
                   ))}
                 </div>
               )}
@@ -310,6 +361,7 @@ export function DartUnfoldModal({ sponsor, isGolden = false, shooterName, onClos
                 )}
 
                 {/* Main ad message — the "printed advertisement" on the magazine page */}
+              {!quote && (
               <div
                 style={{
                   background: isGolden ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.7)",
@@ -342,9 +394,10 @@ export function DartUnfoldModal({ sponsor, isGolden = false, shooterName, onClos
                   </div>
                 )}
               </div>
+              )}
 
-              {/* CTA buttons */}
-              {phase === "strip" && (
+              {/* CTA buttons — only for sponsor darts */}
+              {!quote && phase === "strip" && (
                 <div
                   style={{
                     display: "flex",
@@ -404,7 +457,7 @@ export function DartUnfoldModal({ sponsor, isGolden = false, shooterName, onClos
               )}
 
               {/* Bottom decorative text lines (magazine footer) */}
-              {!isGolden && phase === "strip" && (
+              {!isGolden && !quote && phase === "strip" && (
                 <div style={{ marginTop: 10, opacity: 0.15 }}>
                   {[45, 60, 35].map((w, i) => (
                     <div key={i} style={{ height: 4, width: `${w}%`, background: "#222", borderRadius: 2, marginBottom: 3 }} />

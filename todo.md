@@ -101,3 +101,11 @@
 - [x] Spinning animation during flight using the photo image
 - [x] Update DartArena to use new image-based dart
 - [x] Update DartGallery to use new image-based dart
+
+## Inspirational Quote Darts
+- [x] Add QUOTES array (10 Dutch quotes with author) to shared constants or Home.tsx
+- [x] Add `quote` field to FlyingDart interface (string | null)
+- [x] In shootDart: 1-in-3 chance to assign a random quote instead of a sponsor
+- [x] DartUnfoldModal: add `quote` prop; when set, show quote-themed strip instead of sponsor ad
+- [x] Quote strip: warm paper background, large quote text, author attribution, no sponsor branding
+- [x] Shooter name still shown in quote strip if available

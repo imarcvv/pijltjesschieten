@@ -10,6 +10,24 @@ import { nanoid } from "nanoid";
 
 const SESSION_ID = `session_${Math.random().toString(36).slice(2, 10)}`;
 
+/** Inspirational quotes shown on 1-in-3 darts (no sponsor) */
+const QUOTES: { text: string; author: string }[] = [
+  { text: "De beste manier om de toekomst te voorspellen, is door haar zelf te creëren.", author: "Peter Drucker" },
+  { text: "Je bent nooit te oud om een nieuw doel te stellen of een nieuwe droom te dromen.", author: "C.S. Lewis" },
+  { text: "Succes is niet het eindpunt, falen is niet fataal: het is de moed om door te gaan die telt.", author: "Winston Churchill" },
+  { text: "Begin waar je bent. Gebruik wat je hebt. Doe wat je kunt.", author: "Arthur Ashe" },
+  { text: "Positief denken is niet doen alsof alles geweldig is, maar weten dat je alles aankunt wat er op je pad komt.", author: "Onbekend" },
+  { text: "Het is niet het gewicht van de last, maar de manier waarop je hem draagt die bepaalt hoe vermoeid je raakt.", author: "Lena Horne" },
+  { text: "Verandering is de wet van het leven. Degenen die alleen naar het verleden of het heden kijken, zullen de toekomst missen.", author: "John F. Kennedy" },
+  { text: "Je kunt de windrichting niet veranderen, maar wel de zeilen zo bijstellen dat je altijd je bestemming bereikt.", author: "Jimmy Dean" },
+  { text: "Geluk is geen bestemming, maar een manier van reizen.", author: "Margaret Lee Runbeck" },
+  { text: "Grootse resultaten vereisen vaak grootse ambities, maar beginnen altijd met een eerste, kleine stap.", author: "Heraclitus" },
+];
+
+function getRandomQuote() {
+  return QUOTES[Math.floor(Math.random() * QUOTES.length)];
+}
+
 /** Play a long "sjoeffffff" whoosh sound via Web Audio API — no external file needed */
 function playWhoosh() {
   try {
@@ -84,7 +102,10 @@ export default function Home() {
   }, [sponsors]);
 
   const shootDart = useCallback((power: number) => {
-    const sponsor = getRandomSponsor();
+    // 1-in-3 chance of a quote dart (no sponsor)
+    const isQuoteDart = Math.random() < 1 / 3;
+    const quoteDart = isQuoteDart ? getRandomQuote() : null;
+    const sponsor = isQuoteDart ? null : getRandomSponsor();
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const startX = -20;
@@ -130,6 +151,7 @@ export default function Home() {
               prizeClaimUrl: dartResult?.sponsor?.prizeClaimUrl ?? undefined,
             } : null,
             isGolden: dartResult?.isGolden ?? false,
+            quote: quoteDart,
           };
           setFlyingDarts(prev => [...prev, newDart]);
           setTotalShots(prev => prev + 1);
@@ -176,6 +198,7 @@ export default function Home() {
           sponsor={selectedDart.sponsor}
           isGolden={selectedDart.isGolden}
           shooterName={selectedDart.shooterName}
+          quote={selectedDart.quote}
           onClose={() => setSelectedDart(null)}
         />
       )}

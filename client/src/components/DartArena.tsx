@@ -17,6 +17,8 @@ export interface FlyingDart {
   shooterName?: string | null;
   /** Explicit dart color variant (0=geel, 1=blauw, 2=wit). If set, overrides the sponsor-based mapping. */
   dartVariant?: 0 | 1 | 2;
+  /** If set, this dart shows an inspirational quote instead of a sponsor ad. */
+  quote?: { text: string; author: string } | null;
 }
 
 interface DartArenaProps {
