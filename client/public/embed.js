@@ -183,7 +183,7 @@
     const DART_H   = 38;
     const LOGO_SZ  = Math.round(DART_H * 0.9);
     const GAP      = Math.round(DART_H * 0.2);
-    const DURATION = 3000;
+    const DURATION = 5500;
 
     const wrapper = document.createElement("div");
     Object.assign(wrapper.style, {

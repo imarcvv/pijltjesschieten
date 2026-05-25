@@ -38,7 +38,7 @@ interface AnimatedDart extends FlyingDart {
   isRTL: boolean;
 }
 
-const FLIGHT_DURATION = 3000; // ms
+const FLIGHT_DURATION = 5500; // ms
 const REST_DURATION   = 8000; // ms
 
 // 4 straight-line directions
