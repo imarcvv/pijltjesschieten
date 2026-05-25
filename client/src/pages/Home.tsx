@@ -450,7 +450,7 @@ export default function Home() {
                   )}
                 </div>
                 <div style={{ marginTop: 6, fontSize: 10, color: "#888" }}>
-                  <a href="/admin">Sponsor worden? Klik hier →</a>
+                  <a href="mailto:reizen@gmail.com?subject=Sponsor%20worden%20bij%20Pijltjesschieten.nl&body=Hallo%2C%0A%0AIk%20ben%20ge%C3%AFnteresseerd%20in%20het%20sponsoren%20van%20pijltjes%20op%20Pijltjesschieten.nl.%0A%0AMijn%20naam%3A%0ABedrijf%3A%0ATelefoonnummer%3A%0A%0AGraag%20neem%20ik%20contact%20met%20jullie%20op.%0A%0AMet%20vriendelijke%20groet">Sponsor worden? Klik hier →</a>
                 </div>
               </div>
             </div>
