@@ -364,8 +364,8 @@ export default function Home() {
                   )}
                 </div>
 
-                {/* Name input */}
-                <div style={{ marginBottom: 8 }}>
+                {/* Name input — tijdelijk uitgeschakeld */}
+                {/* <div style={{ marginBottom: 8 }}>
                   <label style={{ fontSize: 10, color: "#555", display: "block", marginBottom: 2 }}>
                     Jouw naam (optioneel):
                   </label>
@@ -376,7 +376,7 @@ export default function Home() {
                     value={shooterName}
                     onChange={e => setShooterName(e.target.value)}
                   />
-                </div>
+                </div> */}
 
                 {/* Blow meter */}
                 {isListening && (
