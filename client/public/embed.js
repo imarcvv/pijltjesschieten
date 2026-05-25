@@ -1,10 +1,10 @@
-/**
- * Pijltjesschieten.nl — Embed Script v1.1
+/*!
+ * Pijltjesschieten.nl — Embed Script v1.2
  * Usage: <script src="https://pijltjesschieten.nl/embed.js"></script>
  *
  * Injects a fixed overlay with flying paper darts over the host website.
  * Darts are triggered in real-time whenever someone shoots on pijltjesschieten.nl.
- * Clicking a dart opens a sponsor message popup.
+ * Clicking a dart opens a sponsor message or inspirational quote popup.
  *
  * Optional config (set before loading the script):
  *   window.PijltjesConfig = {
@@ -18,7 +18,7 @@
   // ── Config ────────────────────────────────────────────────────────────────
   const BASE_URL = "https://pijltjesschieten.nl";
   const cfg = (typeof window !== "undefined" && window.PijltjesConfig) || {};
-  const MAX_DARTS  = cfg.maxDarts  ?? 10;
+  const MAX_DARTS  = cfg.maxDarts  ?? 5;
   const AUTO_START = cfg.autoStart !== false;
 
   const DART_IMAGES = [
@@ -28,19 +28,12 @@
   ];
 
   // ── State ─────────────────────────────────────────────────────────────────
-  let sponsors    = [];
   let overlay     = null;
   let popup       = null;
   let evtSource   = null;
   let activeDarts = 0;
-
-  // ── Fetch sponsors ────────────────────────────────────────────────────────
-  function fetchSponsors() {
-    fetch(BASE_URL + "/api/embed/sponsors", { mode: "cors" })
-      .then(r => r.json())
-      .then(data => { sponsors = Array.isArray(data) ? data : []; })
-      .catch(() => { sponsors = []; });
-  }
+  // Queue: darts waiting to be shown when a slot opens up
+  let dartQueue   = [];
 
   // ── Create overlay ────────────────────────────────────────────────────────
   function createOverlay() {
@@ -101,7 +94,7 @@
     if (!popup) createPopup();
     while (popup.children.length > 1) popup.removeChild(popup.lastChild);
 
-    if (quote) {
+    if (quote && quote.text) {
       // ── Quote dart popup ────────────────────────────────────────────────
       popup.style.background = "#EEF2FF";
       popup.style.borderTop = "4px solid #4a7ab5";
@@ -136,7 +129,7 @@
       popup.appendChild(quoteEl);
 
       const authorEl = document.createElement("div");
-      authorEl.textContent = "\u2014 " + quote.author;
+      authorEl.textContent = "\u2014 " + (quote.author || "");
       Object.assign(authorEl.style, {
         fontWeight: "bold", fontSize: "13px", color: "#4a7ab5",
         textAlign: "right", marginBottom: "10px",
@@ -160,19 +153,19 @@
       }
 
       const title = document.createElement("div");
-      title.textContent = sponsor ? (sponsor.name || sponsor.sponsorName || "Sponsor") : "Pijltjesschieten.nl";
+      title.textContent = sponsor ? (sponsor.name || "Sponsor") : "Pijltjesschieten.nl";
       Object.assign(title.style, {
         fontWeight: "bold", fontSize: "16px", marginBottom: "8px",
-        color: sponsor ? (sponsor.color || sponsor.sponsorColor || "#e63946") : "#e63946",
+        color: sponsor ? (sponsor.color || "#e63946") : "#e63946",
       });
       popup.appendChild(title);
 
       const msg = document.createElement("div");
-      msg.textContent = sponsor ? (sponsor.message || sponsor.sponsorMessage || "") : "Schiet pijltjes over elke website!";
+      msg.textContent = sponsor ? (sponsor.message || "") : "Schiet pijltjes over elke website!";
       Object.assign(msg.style, { color: "#333", marginBottom: "16px", lineHeight: "1.5" });
       popup.appendChild(msg);
 
-      const url = sponsor ? (sponsor.clickUrl || sponsor.sponsorClickUrl) : null;
+      const url = sponsor ? sponsor.clickUrl : null;
       if (url) {
         const btn = document.createElement("a");
         btn.href = url;
@@ -181,7 +174,7 @@
         btn.textContent = "Meer info \u2192";
         Object.assign(btn.style, {
           display: "inline-block",
-          background: sponsor.color || sponsor.sponsorColor || "#e63946",
+          background: sponsor.color || "#e63946",
           color: "#fff", padding: "9px 20px", borderRadius: "6px",
           textDecoration: "none", fontWeight: "bold", fontSize: "13px",
         });
@@ -193,7 +186,7 @@
       const shooter = document.createElement("div");
       shooter.textContent = "\uD83C\uDFF9 Dit pijltje is geschoten door: " + shooterName;
       Object.assign(shooter.style, {
-        color: "#888", fontSize: "12px", marginBottom: "12px", fontStyle: "italic",
+        color: "#888", fontSize: "12px", marginTop: "12px", fontStyle: "italic",
       });
       popup.appendChild(shooter);
     }
@@ -217,19 +210,38 @@
     setTimeout(() => { if (popup) popup.style.display = "none"; }, 200);
   }
 
-  // ── Fire a dart ───────────────────────────────────────────────────────────
+  // ── Queue helpers ─────────────────────────────────────────────────────────
+  // Called every time a dart slot is freed — drain the queue if possible
+  function drainQueue() {
+    while (dartQueue.length > 0 && activeDarts < MAX_DARTS) {
+      const next = dartQueue.shift();
+      _launchDart(next.sponsor, next.shooterName, next.quote);
+    }
+  }
+
+  // ── Fire a dart (public entry point — queues if busy) ─────────────────────
   function fireDart(sponsor, shooterName, quote) {
     if (!overlay) return;
-    if (activeDarts >= MAX_DARTS) return;
+    if (activeDarts < MAX_DARTS) {
+      _launchDart(sponsor, shooterName, quote);
+    } else {
+      // Queue the dart so it is shown as soon as a slot opens
+      dartQueue.push({ sponsor, shooterName, quote });
+    }
+  }
+
+  // ── Internal: actually animate a dart across the screen ───────────────────
+  function _launchDart(sponsor, shooterName, quote) {
+    if (!overlay) return;
 
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
     const directions = [
-      { sx: -0.05, sy: () => 0.15 + Math.random() * 0.7, dx: 1,  dy: 0,    angle: 0,   rtl: false },
-      { sx: 1.05,  sy: () => 0.15 + Math.random() * 0.7, dx: -1, dy: 0,    angle: 180, rtl: true  },
-      { sx: -0.05, sy: () => Math.random() * 0.35,        dx: 1,  dy: 0.25, angle: 14,  rtl: false },
-      { sx: 1.05,  sy: () => Math.random() * 0.35,        dx: -1, dy: 0.25, angle: 166, rtl: true  },
+      { sx: -0.05, sy: function() { return 0.15 + Math.random() * 0.7; }, dx: 1,  dy: 0,    angle: 0   },
+      { sx: 1.05,  sy: function() { return 0.15 + Math.random() * 0.7; }, dx: -1, dy: 0,    angle: 180 },
+      { sx: -0.05, sy: function() { return Math.random() * 0.35; },        dx: 1,  dy: 0.25, angle: 14  },
+      { sx: 1.05,  sy: function() { return Math.random() * 0.35; },        dx: -1, dy: 0.25, angle: 166 },
     ];
     const dir = directions[Math.floor(Math.random() * directions.length)];
 
@@ -238,8 +250,6 @@
     const dartImg  = DART_IMAGES[Math.floor(Math.random() * DART_IMAGES.length)];
     const DART_W   = 220;
     const DART_H   = 38;
-    const LOGO_SZ  = Math.round(DART_H * 0.9);
-    const GAP      = Math.round(DART_H * 0.2);
     const DURATION = 5500;
 
     const wrapper = document.createElement("div");
@@ -257,7 +267,6 @@
       transition:    "opacity 0.3s",
     });
 
-    // Dart image (no logo while flying — only revealed on click)
     const img = document.createElement("img");
     img.src = dartImg;
     img.alt = "pijltje";
@@ -278,20 +287,21 @@
     const endX = startX + Math.cos(rad) * travelDist * dir.dx;
     const endY = startY + Math.sin(rad) * travelDist * Math.abs(dir.dy) + dir.dy * travelDist;
 
-    let start = null;
+    var startTs = null;
     function animate(ts) {
-      if (!start) start = ts;
-      const p = Math.min((ts - start) / DURATION, 1);
+      if (!startTs) startTs = ts;
+      var p = Math.min((ts - startTs) / DURATION, 1);
       wrapper.style.left = (startX + (endX - startX) * p) + "px";
       wrapper.style.top  = (startY + (endY - startY) * p) + "px";
       if (p < 1) {
         requestAnimationFrame(animate);
       } else {
-        // Dart has crossed the screen — fade out and free the slot immediately
+        // Dart has left the screen — remove and free the slot
         wrapper.style.opacity = "0";
-        setTimeout(() => {
+        setTimeout(function() {
           if (wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
           activeDarts = Math.max(0, activeDarts - 1);
+          drainQueue(); // show next queued dart if any
         }, 300);
       }
     }
@@ -299,34 +309,28 @@
   }
 
   // ── SSE stream connection ─────────────────────────────────────────────────
-  var streamConnectedAt = 0; // timestamp of when this client connected
-
   function connectStream() {
     if (evtSource) return;
     evtSource = new EventSource(BASE_URL + "/api/embed/stream");
 
     evtSource.onmessage = function (e) {
       try {
-        const payload = JSON.parse(e.data);
-        // Record the server-side connection time so we can ignore older events
+        var payload = JSON.parse(e.data);
         if (payload.type === "connected") {
-          streamConnectedAt = payload.connectedAt || Date.now();
+          // Connection acknowledged — no filtering needed
           return;
         }
         if (payload.type === "dart") {
-          // Ignore events that were broadcast more than 2s before we connected
-          // (small grace window to avoid dropping darts fired just as we connect)
-          if (payload.ts && streamConnectedAt > 0 && payload.ts < streamConnectedAt - 2000) return;
-          // Build a sponsor-like object from the broadcast payload
-          const sponsor = payload.sponsorName ? {
-            name:        payload.sponsorName,
-            logoUrl:     payload.sponsorLogoUrl || null,
-            color:       payload.sponsorColor   || "#e63946",
-            message:     payload.sponsorMessage || "",
-            clickUrl:    payload.sponsorClickUrl || null,
+          // Build sponsor object from broadcast payload
+          var sponsor = payload.sponsorName ? {
+            name:     payload.sponsorName,
+            logoUrl:  payload.sponsorLogoUrl  || null,
+            color:    payload.sponsorColor    || "#e63946",
+            message:  payload.sponsorMessage  || "",
+            clickUrl: payload.sponsorClickUrl || null,
           } : null;
-          // Quote dart: pass quote object instead of sponsor
-          const quote = payload.quoteText ? {
+          // Build quote object if this is a quote dart
+          var quote = (payload.quoteText) ? {
             text:   payload.quoteText,
             author: payload.quoteAuthor || "",
           } : null;
@@ -336,8 +340,6 @@
     };
 
     evtSource.onerror = function () {
-      // Reconnect after 5s on error — reset connectedAt so stale events are ignored
-      streamConnectedAt = 0;
       evtSource.close();
       evtSource = null;
       setTimeout(connectStream, 5000);
@@ -347,7 +349,6 @@
   // ── Start ─────────────────────────────────────────────────────────────────
   function start() {
     createOverlay();
-    fetchSponsors();
     connectStream();
   }
 
@@ -356,7 +357,7 @@
   }
 
   // ── Public API ────────────────────────────────────────────────────────────
-  window.Pijltjes = { start, stop, fireDart };
+  window.Pijltjes = { start: start, stop: stop, fireDart: fireDart };
 
   // ── Auto-start ────────────────────────────────────────────────────────────
   if (AUTO_START) {
