@@ -34,45 +34,6 @@
   let evtSource   = null;
   let activeDarts = 0;
 
-  // ── Whoosh sound via Web Audio API ───────────────────────────────────────
-  function playWhoosh() {
-    try {
-      var AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (!AudioCtx) return;
-      var ctx = new AudioCtx();
-      var duration = 1.4;
-      var sr = ctx.sampleRate;
-      var bufferSize = Math.floor(sr * duration);
-      var buffer = ctx.createBuffer(1, bufferSize, sr);
-      var data = buffer.getChannelData(0);
-      for (var i = 0; i < bufferSize; i++) {
-        data[i] = Math.random() * 2 - 1;
-      }
-      var source = ctx.createBufferSource();
-      source.buffer = buffer;
-      var hp = ctx.createBiquadFilter();
-      hp.type = "highpass";
-      hp.frequency.value = 600;
-      var bp = ctx.createBiquadFilter();
-      bp.type = "bandpass";
-      bp.Q.value = 1.2;
-      bp.frequency.setValueAtTime(3200, ctx.currentTime);
-      bp.frequency.exponentialRampToValueAtTime(320, ctx.currentTime + duration * 0.85);
-      var gain = ctx.createGain();
-      gain.gain.setValueAtTime(0, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.7, ctx.currentTime + 0.05);
-      gain.gain.setValueAtTime(0.7, ctx.currentTime + duration * 0.6);
-      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
-      source.connect(hp);
-      hp.connect(bp);
-      bp.connect(gain);
-      gain.connect(ctx.destination);
-      source.start();
-      source.stop(ctx.currentTime + duration);
-      source.onended = function() { ctx.close(); };
-    } catch(e) { /* audio not available */ }
-  }
-
   // ── Fetch sponsors ────────────────────────────────────────────────────────
   function fetchSponsors() {
     fetch(BASE_URL + "/api/embed/sponsors", { mode: "cors" })
@@ -262,7 +223,6 @@
     wrapper.addEventListener("click", function() { showPopup(sponsor, shooterName); });
     overlay.appendChild(wrapper);
     activeDarts++;
-    playWhoosh();
 
     // Animate across screen
     const travelDist = Math.sqrt(vw * vw + vh * vh) * 1.1;
