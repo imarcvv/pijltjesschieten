@@ -74,8 +74,9 @@ export function PaperDart({
   // Gap between logo and dart
   const gap = Math.max(4, Math.round(h * 0.2));
 
-  const hasLogo = Boolean(sponsor?.logoUrl);
-  const hasLabel = !hasLogo && Boolean(sponsor?.name) && w >= 80;
+  // Logo/label hidden while flying — sponsor is revealed on click
+  const hasLogo = false;
+  const hasLabel = false;
 
   return (
     <>
