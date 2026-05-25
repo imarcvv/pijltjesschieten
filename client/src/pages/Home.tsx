@@ -85,6 +85,7 @@ export default function Home() {
   const [previewVariant, setPreviewVariant] = useState<0 | 1 | 2>(() => (Math.floor(Math.random() * 3)) as 0 | 1 | 2);
   const [galleryTab, setGalleryTab] = useState<"recent" | "gallery">("recent");
   const [totalShots, setTotalShots] = useState(0);
+  const [nameOpen, setNameOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const utils = trpc.useUtils();
 
@@ -365,19 +366,38 @@ export default function Home() {
                   )}
                 </div>
 
-                {/* Name input — tijdelijk uitgeschakeld */}
-                {/* <div style={{ marginBottom: 8 }}>
-                  <label style={{ fontSize: 10, color: "#555", display: "block", marginBottom: 2 }}>
-                    Jouw naam (optioneel):
-                  </label>
-                  <input
-                    className="retro-input"
-                    style={{ width: "100%" }}
-                    placeholder="Bijv. Marc"
-                    value={shooterName}
-                    onChange={e => setShooterName(e.target.value)}
-                  />
-                </div> */}
+                {/* Name input — uitklapbaar onder de Blaas-knop */}
+                <div style={{ marginBottom: 6 }}>
+                  <button
+                    onClick={() => setNameOpen(o => !o)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      fontSize: 10,
+                      color: shooterName ? "#cc6600" : "#888",
+                      padding: "2px 0",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
+                  >
+                    <span style={{ transition: "transform 0.2s", display: "inline-block", transform: nameOpen ? "rotate(90deg)" : "rotate(0deg)" }}>▶</span>
+                    {shooterName ? `✏️ Naam: ${shooterName}` : "✏️ Jouw naam toevoegen (optioneel)"}
+                  </button>
+                  {nameOpen && (
+                    <div style={{ marginTop: 4 }}>
+                      <input
+                        className="retro-input"
+                        style={{ width: "100%" }}
+                        placeholder="Bijv. Marc"
+                        value={shooterName}
+                        onChange={e => setShooterName(e.target.value)}
+                        autoFocus
+                      />
+                    </div>
+                  )}
+                </div>
 
                 {/* Blow meter */}
                 {isListening && (
