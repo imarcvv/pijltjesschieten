@@ -386,19 +386,11 @@ export default function Home() {
                       ? "🛑 Stop microfoon"
                       : "🎯 Blaas!"}
                   </button>
-                  <button
-                    className="retro-btn retro-btn-green"
-                    style={{ fontSize: 13, padding: "5px 14px", whiteSpace: "nowrap" }}
-                    onClick={() => shootDart(0.8)}
-                    title="Schiet direct een pijltje zonder microfoon"
-                  >
-                    🏹 Schiet!
-                  </button>
                 </div>
 
                 {!isListening && (
                   <div style={{ fontSize: 10, color: "#888", marginTop: 6, textAlign: "center" }}>
-                    Blaas in je microfoon <em>of</em> klik op <strong>Schiet!</strong> om direct een pijltje te sturen
+                    Klik op de oranje knop en blaas hard in je microfoon
                   </div>
                 )}
               </div>
