@@ -292,6 +292,8 @@
   }
 
   // ── SSE stream connection ─────────────────────────────────────────────────
+  var streamConnectedAt = 0; // timestamp of when this client connected
+
   function connectStream() {
     if (evtSource) return;
     evtSource = new EventSource(BASE_URL + "/api/embed/stream");
@@ -299,7 +301,14 @@
     evtSource.onmessage = function (e) {
       try {
         const payload = JSON.parse(e.data);
+        // Record the server-side connection time so we can ignore older events
+        if (payload.type === "connected") {
+          streamConnectedAt = payload.connectedAt || Date.now();
+          return;
+        }
         if (payload.type === "dart") {
+          // Ignore events that were broadcast before we connected
+          if (payload.ts && payload.ts < streamConnectedAt) return;
           // Build a sponsor-like object from the broadcast payload
           const sponsor = payload.sponsorName ? {
             name:        payload.sponsorName,
@@ -314,7 +323,8 @@
     };
 
     evtSource.onerror = function () {
-      // Reconnect after 5s on error
+      // Reconnect after 5s on error — reset connectedAt so stale events are ignored
+      streamConnectedAt = 0;
       evtSource.close();
       evtSource = null;
       setTimeout(connectStream, 5000);

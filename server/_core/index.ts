@@ -58,7 +58,11 @@ async function startServer() {
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
     res.flushHeaders();
+    // Send connection timestamp — client uses this to ignore events fired before connecting
+    const connectedAt = Date.now();
+    res.write(`data: ${JSON.stringify({ type: "connected", connectedAt })}\n\n`);
     const hb = setInterval(() => { try { res.write(": heartbeat\n\n"); } catch { clearInterval(hb); } }, 25000);
     sseClients.add(res);
     req.on("close", () => { sseClients.delete(res); clearInterval(hb); });
