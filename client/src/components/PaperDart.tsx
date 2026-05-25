@@ -125,23 +125,25 @@ export function PaperDart({
           />
         )}
 
-        {/* ── Sponsor logo badge at the wide/back end ───────────────── */}
-        {/* Back/wide end is LEFT in the image (tip is on the right).          */}
-        {/* Counter-rotate the badge when dart is flipped so logo stays upright */}
+        {/* ── Sponsor logo badge — just behind the tip (right side) ──── */}
+        {/* Tip is at the FAR RIGHT of the image (~95% from left).             */}
+        {/* Logo sits just to the left of the tip with a small white gap.      */}
+        {/* When dart is flipped (RTL), counter-rotate so logo stays upright.  */}
         {sponsor?.logoUrl && (
           <div
             style={{
               position: "absolute",
-              left: Math.round(w * 0.02),
+              // Place logo just behind the tip: right edge at ~93% of dart width
+              right: Math.round(w * 0.07),
               top: "50%",
               transform: flippedForRTL ? "translateY(-50%) rotate(-180deg)" : "translateY(-50%)",
-              width: Math.max(14, Math.round(h * 0.75)),
-              height: Math.max(14, Math.round(h * 0.75)),
-              borderRadius: 2,
+              width: Math.max(16, Math.round(h * 0.85)),
+              height: Math.max(16, Math.round(h * 0.85)),
+              borderRadius: 3,
               overflow: "hidden",
-              border: "1px solid rgba(255,255,255,0.7)",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.45)",
-              background: "rgba(255,255,255,0.88)",
+              border: "1px solid rgba(255,255,255,0.9)",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.5)",
+              background: "rgba(255,255,255,0.95)",
             }}
           >
             <img
@@ -158,7 +160,7 @@ export function PaperDart({
           <div
             style={{
               position: "absolute",
-              left: Math.round(w * 0.03),
+              right: Math.round(w * 0.07),
               top: "50%",
               transform: flippedForRTL ? "translateY(-50%) rotate(-180deg)" : "translateY(-50%)",
               background: sponsor.color,
