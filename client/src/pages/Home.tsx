@@ -95,8 +95,9 @@ export default function Home() {
     setTimeout(() => setIsRolling(false), 500);
     // Trigger shoot animation: slide out right, then slide in new dart
     setDartShotAnim("shooting");
-    setTimeout(() => setDartShotAnim("reloading"), 420);
-    setTimeout(() => setDartShotAnim("idle"), 900);
+    // Whoosh sound lasts 1.4s — slide out fast, then wait for sound to finish before reloading
+    setTimeout(() => setDartShotAnim("reloading"), 1500); // new dart slides in after whoosh ends
+    setTimeout(() => setDartShotAnim("idle"), 1950);
 
     const spin = (Math.random() - 0.5) * 2;
 
