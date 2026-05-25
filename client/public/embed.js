@@ -248,31 +248,7 @@
       transition:    "opacity 0.3s",
     });
 
-    // Sponsor logo
-    const logoUrl = sponsor ? (sponsor.logoUrl || sponsor.sponsorLogoUrl) : null;
-    if (logoUrl) {
-      const logoWrap = document.createElement("div");
-      Object.assign(logoWrap.style, {
-        width: LOGO_SZ + "px", height: LOGO_SZ + "px",
-        flexShrink: "0", marginRight: GAP + "px",
-        borderRadius: "4px", overflow: "hidden",
-        border: "1.5px solid rgba(200,200,200,0.9)",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.35)",
-        background: "#fff",
-        transform: dir.rtl ? "rotate(-180deg)" : "none",
-      });
-      const logoImg = document.createElement("img");
-      logoImg.src = logoUrl.startsWith("/") ? BASE_URL + logoUrl : logoUrl;
-      logoImg.alt = sponsor.name || sponsor.sponsorName || "";
-      Object.assign(logoImg.style, {
-        width: "100%", height: "100%", objectFit: "contain",
-        padding: "2px", display: "block",
-      });
-      logoWrap.appendChild(logoImg);
-      wrapper.appendChild(logoWrap);
-    }
-
-    // Dart image
+    // Dart image (no logo while flying — only revealed on click)
     const img = document.createElement("img");
     img.src = dartImg;
     img.alt = "pijltje";
