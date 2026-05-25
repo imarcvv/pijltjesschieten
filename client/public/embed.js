@@ -97,48 +97,96 @@
     document.body.appendChild(popup);
   }
 
-  function showPopup(sponsor, shooterName) {
+  function showPopup(sponsor, shooterName, quote) {
     if (!popup) createPopup();
     while (popup.children.length > 1) popup.removeChild(popup.lastChild);
 
-    if (sponsor && sponsor.logoUrl) {
-      const logo = document.createElement("img");
-      logo.src = sponsor.logoUrl.startsWith("/") ? BASE_URL + sponsor.logoUrl : sponsor.logoUrl;
-      logo.alt = sponsor.name || "";
-      Object.assign(logo.style, {
-        maxWidth: "120px", maxHeight: "60px", objectFit: "contain",
-        display: "block", margin: "0 auto 12px",
+    if (quote) {
+      // ── Quote dart popup ────────────────────────────────────────────────
+      popup.style.background = "#EEF2FF";
+      popup.style.borderTop = "4px solid #4a7ab5";
+
+      const icon = document.createElement("div");
+      icon.textContent = "\uD83D\uDCAC";
+      Object.assign(icon.style, { fontSize: "28px", marginBottom: "6px" });
+      popup.appendChild(icon);
+
+      const label = document.createElement("div");
+      label.textContent = "Inspiratie";
+      Object.assign(label.style, {
+        fontWeight: "bold", fontSize: "13px", color: "#4a7ab5",
+        textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "10px",
       });
-      popup.appendChild(logo);
-    }
+      popup.appendChild(label);
 
-    const title = document.createElement("div");
-    title.textContent = sponsor ? (sponsor.name || sponsor.sponsorName || "Sponsor") : "Pijltjesschieten.nl";
-    Object.assign(title.style, {
-      fontWeight: "bold", fontSize: "16px", marginBottom: "8px",
-      color: sponsor ? (sponsor.color || sponsor.sponsorColor || "#e63946") : "#e63946",
-    });
-    popup.appendChild(title);
-
-    const msg = document.createElement("div");
-    msg.textContent = sponsor ? (sponsor.message || sponsor.sponsorMessage || "") : "Schiet pijltjes over elke website!";
-    Object.assign(msg.style, { color: "#333", marginBottom: "16px", lineHeight: "1.5" });
-    popup.appendChild(msg);
-
-    const url = sponsor ? (sponsor.clickUrl || sponsor.sponsorClickUrl) : null;
-    if (url) {
-      const btn = document.createElement("a");
-      btn.href = url;
-      btn.target = "_blank";
-      btn.rel = "noopener noreferrer";
-      btn.textContent = "Meer info →";
-      Object.assign(btn.style, {
-        display: "inline-block",
-        background: sponsor.color || sponsor.sponsorColor || "#e63946",
-        color: "#fff", padding: "9px 20px", borderRadius: "6px",
-        textDecoration: "none", fontWeight: "bold", fontSize: "13px",
+      const openQuote = document.createElement("div");
+      openQuote.textContent = "\u201C";
+      Object.assign(openQuote.style, {
+        fontFamily: "Georgia, serif", fontSize: "52px", color: "#4a7ab5",
+        lineHeight: "0.6", marginBottom: "4px", opacity: "0.4",
       });
-      popup.appendChild(btn);
+      popup.appendChild(openQuote);
+
+      const quoteEl = document.createElement("p");
+      quoteEl.textContent = quote.text;
+      Object.assign(quoteEl.style, {
+        fontStyle: "italic", fontSize: "14px", lineHeight: "1.6",
+        color: "#1a2a4a", margin: "0 0 10px 0",
+      });
+      popup.appendChild(quoteEl);
+
+      const authorEl = document.createElement("div");
+      authorEl.textContent = "\u2014 " + quote.author;
+      Object.assign(authorEl.style, {
+        fontWeight: "bold", fontSize: "13px", color: "#4a7ab5",
+        textAlign: "right", marginBottom: "10px",
+      });
+      popup.appendChild(authorEl);
+
+    } else {
+      // ── Sponsor dart popup ─────────────────────────────────────────────
+      popup.style.background = "#fff";
+      popup.style.borderTop = "";
+
+      if (sponsor && sponsor.logoUrl) {
+        const logo = document.createElement("img");
+        logo.src = sponsor.logoUrl.startsWith("/") ? BASE_URL + sponsor.logoUrl : sponsor.logoUrl;
+        logo.alt = sponsor.name || "";
+        Object.assign(logo.style, {
+          maxWidth: "120px", maxHeight: "60px", objectFit: "contain",
+          display: "block", margin: "0 auto 12px",
+        });
+        popup.appendChild(logo);
+      }
+
+      const title = document.createElement("div");
+      title.textContent = sponsor ? (sponsor.name || sponsor.sponsorName || "Sponsor") : "Pijltjesschieten.nl";
+      Object.assign(title.style, {
+        fontWeight: "bold", fontSize: "16px", marginBottom: "8px",
+        color: sponsor ? (sponsor.color || sponsor.sponsorColor || "#e63946") : "#e63946",
+      });
+      popup.appendChild(title);
+
+      const msg = document.createElement("div");
+      msg.textContent = sponsor ? (sponsor.message || sponsor.sponsorMessage || "") : "Schiet pijltjes over elke website!";
+      Object.assign(msg.style, { color: "#333", marginBottom: "16px", lineHeight: "1.5" });
+      popup.appendChild(msg);
+
+      const url = sponsor ? (sponsor.clickUrl || sponsor.sponsorClickUrl) : null;
+      if (url) {
+        const btn = document.createElement("a");
+        btn.href = url;
+        btn.target = "_blank";
+        btn.rel = "noopener noreferrer";
+        btn.textContent = "Meer info \u2192";
+        Object.assign(btn.style, {
+          display: "inline-block",
+          background: sponsor.color || sponsor.sponsorColor || "#e63946",
+          color: "#fff", padding: "9px 20px", borderRadius: "6px",
+          textDecoration: "none", fontWeight: "bold", fontSize: "13px",
+        });
+        popup.appendChild(btn);
+      }
     }
 
     if (shooterName) {
@@ -170,7 +218,7 @@
   }
 
   // ── Fire a dart ───────────────────────────────────────────────────────────
-  function fireDart(sponsor, shooterName) {
+  function fireDart(sponsor, shooterName, quote) {
     if (!overlay) return;
     if (activeDarts >= MAX_DARTS) return;
 
@@ -220,7 +268,7 @@
     });
     wrapper.appendChild(img);
 
-    wrapper.addEventListener("click", function() { showPopup(sponsor, shooterName); });
+    wrapper.addEventListener("click", function() { showPopup(sponsor, shooterName, quote); });
     overlay.appendChild(wrapper);
     activeDarts++;
 
@@ -277,7 +325,12 @@
             message:     payload.sponsorMessage || "",
             clickUrl:    payload.sponsorClickUrl || null,
           } : null;
-          fireDart(sponsor, payload.shooterName || null);
+          // Quote dart: pass quote object instead of sponsor
+          const quote = payload.quoteText ? {
+            text:   payload.quoteText,
+            author: payload.quoteAuthor || "",
+          } : null;
+          fireDart(sponsor, payload.shooterName || null, quote);
         }
       } catch (_) { /* ignore parse errors */ }
     };

@@ -109,3 +109,11 @@
 - [x] DartUnfoldModal: add `quote` prop; when set, show quote-themed strip instead of sponsor ad
 - [x] Quote strip: warm paper background, large quote text, author attribution, no sponsor branding
 - [x] Shooter name still shown in quote strip if available
+
+## Quote-pijltjes op Embedded Sites
+- [x] Add quote field to fireDart mutation input schema (routers.ts)
+- [x] Add quoteText/quoteAuthor fields to DartBroadcastPayload (embedBroadcast.ts)
+- [x] Pass quote from mutation input into broadcastDartEvent call (routers.ts)
+- [x] Pass quote from Home.tsx shootDart mutation call
+- [x] embed.js: parse quoteText/quoteAuthor from SSE payload, pass to fireDart
+- [x] embed.js: showPopup handles quote mode (blue header, quote text, author, no sponsor branding)

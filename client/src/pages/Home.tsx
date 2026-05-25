@@ -128,6 +128,8 @@ export default function Home() {
         sponsorId: sponsor?.id ?? undefined,
         sessionId: SESSION_ID,
         shooterName: shooterName || undefined,
+        quoteText: quoteDart?.text ?? undefined,
+        quoteAuthor: quoteDart?.author ?? undefined,
         trajectoryData: { startX, startY, angle, speed, spin },
       },
       {

@@ -122,6 +122,8 @@ export const appRouter = router({
         sponsorId: z.number().optional(),
         sessionId: z.string(),
         shooterName: z.string().max(128).optional(),
+        quoteText: z.string().max(512).optional(),
+        quoteAuthor: z.string().max(128).optional(),
         trajectoryData: z.object({
           startX: z.number(),
           startY: z.number(),
@@ -159,6 +161,8 @@ export const appRouter = router({
             sponsorMessage:  sponsor?.message ?? null,
             sponsorClickUrl: sponsor?.clickUrl ?? null,
             shooterName:     input.shooterName ?? null,
+            quoteText:       input.quoteText ?? null,
+            quoteAuthor:     input.quoteAuthor ?? null,
           });
         }
         return dart;

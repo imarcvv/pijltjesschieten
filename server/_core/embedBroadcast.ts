@@ -16,6 +16,9 @@ export interface DartBroadcastPayload {
   sponsorMessage:  string | null;
   sponsorClickUrl: string | null;
   shooterName:     string | null;
+  /** Inspirational quote — set when this dart is a quote dart (no sponsor) */
+  quoteText:       string | null;
+  quoteAuthor:     string | null;
 }
 
 export function broadcastDartEvent(payload: DartBroadcastPayload): void {
