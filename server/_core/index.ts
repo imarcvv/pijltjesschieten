@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import cors from "cors";
 import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
@@ -8,6 +9,7 @@ import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import { getActiveSponsors } from "../db";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -34,6 +36,19 @@ async function startServer() {
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  // CORS — allow embed.js to be loaded from any website
+  app.use("/api/embed", cors({ origin: "*", methods: ["GET"] }));
+
+  // Public embed API: active sponsors (no auth required, CORS open)
+  app.get("/api/embed/sponsors", async (_req, res) => {
+    try {
+      const sponsors = await getActiveSponsors();
+      res.json(sponsors);
+    } catch {
+      res.json([]);
+    }
+  });
+
   registerStorageProxy(app);
   registerOAuthRoutes(app);
   // tRPC API
