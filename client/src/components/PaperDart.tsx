@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 
 export interface DartSponsor {
   id: number;
@@ -37,8 +37,13 @@ const DART_IMAGES = [
 /**
  * Photo-realistic paper dart using 3 real pijltje photos (geel/blauw/wit).
  * Images point RIGHT by default.
- * Use flippedForRTL=true for right→left flight; sponsor badge is counter-rotated
- * so it always stays horizontally readable.
+ *
+ * Layout (L→R flight):   [LOGO] [gap] [════════dart image════════>]
+ * Layout (R→L flight):   [<════════dart image════════] [gap] [LOGO]
+ *   (the outer div is rotated 180° by DartArena; we counter-rotate the logo
+ *    so it stays horizontally readable)
+ *
+ * The logo sits OUTSIDE the dart image, separated by a clear white gap.
  */
 export function PaperDart({
   sponsor,
@@ -64,6 +69,14 @@ export function PaperDart({
   const w = width * scale;
   const h = height * scale;
 
+  // Logo dimensions: square, ~90% of dart height
+  const logoSize = Math.max(18, Math.round(h * 0.9));
+  // Gap between logo and dart
+  const gap = Math.max(4, Math.round(h * 0.2));
+
+  const hasLogo = Boolean(sponsor?.logoUrl);
+  const hasLabel = !hasLogo && Boolean(sponsor?.name) && w >= 80;
+
   return (
     <>
       <style>{`
@@ -80,127 +93,127 @@ export function PaperDart({
           50%      { opacity:0.7; transform:translateY(-50%) scale(1.25); }
         }
       `}</style>
+
+      {/*
+        Outer flex row: [logo/label] [gap] [dart image]
+        When flippedForRTL=true the DartArena outer div already applies rotate(180deg),
+        so the whole assembly is flipped. We counter-rotate the logo div so it reads normally.
+      */}
       <div
         className={className}
         onClick={onClick}
         style={{
-          position: "relative",
-          width: w,
-          height: h,
           display: "inline-flex",
+          flexDirection: "row",
           alignItems: "center",
           cursor: onClick ? "pointer" : "default",
           flexShrink: 0,
           ...style,
         }}
       >
-        {/* ── Real photo dart image ─────────────────────────────────── */}
-        <img
-          src={dartImg}
-          alt={sponsor ? `Pijltje van ${sponsor.name}` : "Papieren pijltje"}
-          draggable={false}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "fill",
-            display: "block",
-            userSelect: "none",
-            filter: isGolden ? "sepia(1) hue-rotate(5deg) saturate(5) brightness(1.2)" : undefined,
-            animation: spinning ? "dart-spin-flight 0.18s linear infinite" : undefined,
-          }}
-        />
-
-        {/* ── Golden shimmer sweep ──────────────────────────────────── */}
-        {isGolden && (
+        {/* ── Sponsor logo — sits to the LEFT of the dart (back end) ─── */}
+        {hasLogo && (
           <div
             style={{
-              position: "absolute",
-              top: 0,
-              bottom: 0,
-              width: "50%",
-              background: "linear-gradient(90deg, transparent, rgba(255,255,180,0.55), transparent)",
-              animation: "golden-shimmer-dart 1.6s linear infinite",
-              pointerEvents: "none",
-            }}
-          />
-        )}
-
-        {/* ── Sponsor logo badge — just behind the tip (right side) ──── */}
-        {/* Tip is at the FAR RIGHT of the image (~95% from left).             */}
-        {/* Logo sits just to the left of the tip with a small white gap.      */}
-        {/* When dart is flipped (RTL), counter-rotate so logo stays upright.  */}
-        {sponsor?.logoUrl && (
-          <div
-            style={{
-              position: "absolute",
-              // Place logo at the wide/back end (left side), small gap from edge
-              left: Math.round(w * 0.04),
-              top: "50%",
-              transform: flippedForRTL ? "translateY(-50%) rotate(-180deg)" : "translateY(-50%)",
-              width: Math.max(16, Math.round(h * 0.85)),
-              height: Math.max(16, Math.round(h * 0.85)),
-              borderRadius: 3,
+              width: logoSize,
+              height: logoSize,
+              flexShrink: 0,
+              marginRight: gap,
+              borderRadius: 4,
               overflow: "hidden",
-              border: "1px solid rgba(255,255,255,0.9)",
-              boxShadow: "0 1px 4px rgba(0,0,0,0.5)",
-              background: "rgba(255,255,255,0.95)",
+              border: "1.5px solid rgba(200,200,200,0.9)",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.35)",
+              background: "#fff",
+              // Counter-rotate when dart is flipped so logo stays upright
+              transform: flippedForRTL ? "rotate(-180deg)" : undefined,
             }}
           >
             <img
-              src={sponsor.logoUrl}
-              alt={sponsor.name}
-              style={{ width: "100%", height: "100%", objectFit: "contain" }}
+              src={sponsor!.logoUrl!}
+              alt={sponsor!.name}
+              style={{ width: "100%", height: "100%", objectFit: "contain", padding: 2 }}
               draggable={false}
             />
           </div>
         )}
 
-        {/* ── Sponsor name label (when no logo) ────────────────────── */}
-        {!sponsor?.logoUrl && sponsor?.name && w >= 80 && (
+        {/* ── Sponsor name label (when no logo) ─────────────────────── */}
+        {hasLabel && (
           <div
             style={{
-              position: "absolute",
-              left: Math.round(w * 0.04),
-              top: "50%",
-              transform: flippedForRTL ? "translateY(-50%) rotate(-180deg)" : "translateY(-50%)",
-              background: sponsor.color,
+              flexShrink: 0,
+              marginRight: gap,
+              background: sponsor!.color,
               color: "#fff",
               fontSize: Math.max(7, Math.round(h * 0.28)),
               fontFamily: "Verdana, Arial, sans-serif",
               fontWeight: "bold",
-              padding: "1px 4px",
+              padding: "2px 5px",
+              borderRadius: 3,
               whiteSpace: "nowrap",
-              border: "1px solid rgba(0,0,0,0.3)",
+              border: "1px solid rgba(0,0,0,0.25)",
               textShadow: "0 1px 1px rgba(0,0,0,0.4)",
               maxWidth: Math.round(w * 0.35),
               overflow: "hidden",
               textOverflow: "ellipsis",
+              transform: flippedForRTL ? "rotate(-180deg)" : undefined,
             }}
           >
-            {sponsor.name}
+            {sponsor!.name}
           </div>
         )}
 
-        {/* ── Golden trophy icon ────────────────────────────────────── */}
-        {isGolden && (
-          <div
+        {/* ── Real photo dart image ─────────────────────────────────── */}
+        <div style={{ position: "relative", width: w, height: h, flexShrink: 0 }}>
+          <img
+            src={dartImg}
+            alt={sponsor ? `Pijltje van ${sponsor.name}` : "Papieren pijltje"}
+            draggable={false}
             style={{
-              position: "absolute",
-              left: Math.round(w * 0.38),
-              top: "50%",
-              transform: flippedForRTL ? "translateY(-50%) rotate(-180deg)" : "translateY(-50%)",
-              fontSize: Math.max(10, Math.round(h * 0.55)),
-              filter: "drop-shadow(0 0 4px rgba(255,200,0,0.9))",
-              animation: "golden-pulse-trophy 1.2s ease-in-out infinite",
-              pointerEvents: "none",
+              width: "100%",
+              height: "100%",
+              objectFit: "fill",
+              display: "block",
+              userSelect: "none",
+              filter: isGolden ? "sepia(1) hue-rotate(5deg) saturate(5) brightness(1.2)" : undefined,
+              animation: spinning ? "dart-spin-flight 0.18s linear infinite" : undefined,
             }}
-          >
-            🏆
-          </div>
-        )}
+          />
+
+          {/* ── Golden shimmer sweep ────────────────────────────────── */}
+          {isGolden && (
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                bottom: 0,
+                width: "50%",
+                background: "linear-gradient(90deg, transparent, rgba(255,255,180,0.55), transparent)",
+                animation: "golden-shimmer-dart 1.6s linear infinite",
+                pointerEvents: "none",
+              }}
+            />
+          )}
+
+          {/* ── Golden trophy icon ──────────────────────────────────── */}
+          {isGolden && (
+            <div
+              style={{
+                position: "absolute",
+                left: "50%",
+                top: "50%",
+                transform: "translate(-50%, -50%)",
+                fontSize: Math.max(10, Math.round(h * 0.55)),
+                filter: "drop-shadow(0 0 4px rgba(255,200,0,0.9))",
+                animation: "golden-pulse-trophy 1.2s ease-in-out infinite",
+                pointerEvents: "none",
+              }}
+            >
+              🏆
+            </div>
+          )}
+        </div>
       </div>
     </>
   );
 }
-
-export default PaperDart;
