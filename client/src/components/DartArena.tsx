@@ -14,6 +14,7 @@ export interface FlyingDart {
   dbId?: number;
   dx?: number;
   dy?: number;
+  shooterName?: string | null;
 }
 
 interface DartArenaProps {

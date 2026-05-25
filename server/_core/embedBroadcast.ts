@@ -15,6 +15,7 @@ export interface DartBroadcastPayload {
   sponsorColor:    string | null;
   sponsorMessage:  string | null;
   sponsorClickUrl: string | null;
+  shooterName:     string | null;
 }
 
 export function broadcastDartEvent(payload: DartBroadcastPayload): void {

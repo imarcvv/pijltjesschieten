@@ -4,6 +4,7 @@ import { DartSponsor } from "./PaperDart";
 interface DartUnfoldModalProps {
   sponsor: DartSponsor | null;
   isGolden?: boolean;
+  shooterName?: string | null;
   onClose: () => void;
 }
 
@@ -78,7 +79,7 @@ function ConfettiCanvas() {
  * white background, horizontal text lines, sponsor colour band at top,
  * sponsor message as the "ad" printed on the page.
  */
-export function DartUnfoldModal({ sponsor, isGolden = false, onClose }: DartUnfoldModalProps) {
+export function DartUnfoldModal({ sponsor, isGolden = false, shooterName, onClose }: DartUnfoldModalProps) {
   const [phase, setPhase] = useState<"cylinder" | "unrolling" | "strip" | "closing">("cylinder");
   const [showConfetti, setShowConfetti] = useState(false);
 
@@ -291,7 +292,24 @@ export function DartUnfoldModal({ sponsor, isGolden = false, onClose }: DartUnfo
                 </div>
               )}
 
-              {/* Main ad message — the "printed advertisement" on the magazine page */}
+                {/* Shooter name — who fired this dart */}
+                {shooterName && phase === "strip" && (
+                  <div
+                    style={{
+                      fontFamily: "'VT323', monospace",
+                      fontSize: 13,
+                      color: isGolden ? "rgba(61,40,0,0.65)" : "#888",
+                      marginBottom: 8,
+                      textAlign: "center",
+                      animation: "fadeInUp 0.35s ease both 0.05s",
+                      animationFillMode: "both",
+                    }}
+                  >
+                    🏹 Dit pijltje is geschoten door: <strong style={{ color: isGolden ? "#3d2800" : "#555" }}>{shooterName}</strong>
+                  </div>
+                )}
+
+                {/* Main ad message — the "printed advertisement" on the magazine page */}
               <div
                 style={{
                   background: isGolden ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.7)",

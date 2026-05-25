@@ -158,6 +158,7 @@ export const appRouter = router({
             sponsorColor:    sponsor?.color ?? null,
             sponsorMessage:  sponsor?.message ?? null,
             sponsorClickUrl: sponsor?.clickUrl ?? null,
+            shooterName:     input.shooterName ?? null,
           });
         }
         return dart;

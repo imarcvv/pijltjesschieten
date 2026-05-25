@@ -10,6 +10,36 @@ import { nanoid } from "nanoid";
 
 const SESSION_ID = `session_${Math.random().toString(36).slice(2, 10)}`;
 
+/** Play a short whoosh sound via Web Audio API — no external file needed */
+function playWhoosh() {
+  try {
+    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    const bufferSize = ctx.sampleRate * 0.35;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 2.2);
+    }
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    // Band-pass filter to shape the whoosh
+    const filter = ctx.createBiquadFilter();
+    filter.type = "bandpass";
+    filter.frequency.setValueAtTime(800, ctx.currentTime);
+    filter.frequency.linearRampToValueAtTime(200, ctx.currentTime + 0.35);
+    filter.Q.value = 0.8;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.55, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.35);
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    source.start();
+    source.stop(ctx.currentTime + 0.35);
+    source.onended = () => ctx.close();
+  } catch { /* audio not available */ }
+}
+
 export default function Home() {
   const [flyingDarts, setFlyingDarts] = useState<FlyingDart[]>([]);
   const [selectedDart, setSelectedDart] = useState<FlyingDart | null>(null);
@@ -56,6 +86,7 @@ export default function Home() {
       },
       {
         onSuccess: (result) => {
+          playWhoosh();
           const dartResult = result ?? null;
           const newDart: FlyingDart = {
             id: nanoid(),
@@ -66,6 +97,7 @@ export default function Home() {
             spin,
             firedAt: Date.now(),
             dbId: dartResult?.id,
+            shooterName: shooterName || null,
             sponsor: sponsor ? {
               ...sponsor,
               prizeText: dartResult?.sponsor?.prizeText ?? undefined,
@@ -115,6 +147,7 @@ export default function Home() {
         <DartUnfoldModal
           sponsor={selectedDart.sponsor}
           isGolden={selectedDart.isGolden}
+          shooterName={selectedDart.shooterName}
           onClose={() => setSelectedDart(null)}
         />
       )}
@@ -336,8 +369,7 @@ export default function Home() {
                   <li>Klik op de <strong>oranje knop</strong> om de microfoon te activeren</li>
                   <li>Blaas <strong>hard</strong> in je microfoon (niet te zacht!)</li>
                   <li>Kijk hoe je pijltje over het scherm vliegt! 🎯</li>
-                  <li>Klik op een vliegend pijltje om de boodschap te lezen</li>
-                  <li>Heb je een <strong style={{ color: "#cc8800" }}>gouden pijltje</strong>? Dan win je een prijs! 🏆</li>
+                  <li>Ergens in Nederland vliegt jouw pijltje over een scherm. Klikt iemand op jouw vliegende pijltje, dan is er een kans dat het een <strong style={{ color: "#cc8800" }}>gouden pijltje</strong> is! En dan wint hij of zij een prijs! 🏆</li>
                 </ol>
               </div>
             </div>

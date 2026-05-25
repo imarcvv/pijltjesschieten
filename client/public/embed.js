@@ -34,6 +34,37 @@
   let evtSource   = null;
   let activeDarts = 0;
 
+  // ── Whoosh sound via Web Audio API ───────────────────────────────────────
+  function playWhoosh() {
+    try {
+      var AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      var ctx = new AudioCtx();
+      var bufferSize = Math.floor(ctx.sampleRate * 0.35);
+      var buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      var data = buffer.getChannelData(0);
+      for (var i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 2.2);
+      }
+      var source = ctx.createBufferSource();
+      source.buffer = buffer;
+      var filter = ctx.createBiquadFilter();
+      filter.type = "bandpass";
+      filter.frequency.setValueAtTime(800, ctx.currentTime);
+      filter.frequency.linearRampToValueAtTime(200, ctx.currentTime + 0.35);
+      filter.Q.value = 0.8;
+      var gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.55, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.35);
+      source.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      source.start();
+      source.stop(ctx.currentTime + 0.35);
+      source.onended = function() { ctx.close(); };
+    } catch(e) { /* audio not available */ }
+  }
+
   // ── Fetch sponsors ────────────────────────────────────────────────────────
   function fetchSponsors() {
     fetch(BASE_URL + "/api/embed/sponsors", { mode: "cors" })
@@ -97,7 +128,7 @@
     document.body.appendChild(popup);
   }
 
-  function showPopup(sponsor) {
+  function showPopup(sponsor, shooterName) {
     if (!popup) createPopup();
     while (popup.children.length > 1) popup.removeChild(popup.lastChild);
 
@@ -141,6 +172,15 @@
       popup.appendChild(btn);
     }
 
+    if (shooterName) {
+      const shooter = document.createElement("div");
+      shooter.textContent = "\uD83C\uDFF9 Dit pijltje is geschoten door: " + shooterName;
+      Object.assign(shooter.style, {
+        color: "#888", fontSize: "12px", marginBottom: "12px", fontStyle: "italic",
+      });
+      popup.appendChild(shooter);
+    }
+
     const brand = document.createElement("div");
     brand.innerHTML = '<a href="https://pijltjesschieten.nl" target="_blank" rel="noopener noreferrer" style="color:#aaa;font-size:11px;text-decoration:none;">pijltjesschieten.nl</a>';
     Object.assign(brand.style, { marginTop: "14px" });
@@ -161,7 +201,7 @@
   }
 
   // ── Fire a dart ───────────────────────────────────────────────────────────
-  function fireDart(sponsor) {
+  function fireDart(sponsor, shooterName) {
     if (!overlay) return;
     if (activeDarts >= MAX_DARTS) return;
 
@@ -235,9 +275,10 @@
     });
     wrapper.appendChild(img);
 
-    wrapper.addEventListener("click", () => showPopup(sponsor));
+    wrapper.addEventListener("click", function() { showPopup(sponsor, shooterName); });
     overlay.appendChild(wrapper);
     activeDarts++;
+    playWhoosh();
 
     // Animate across screen
     const travelDist = Math.sqrt(vw * vw + vh * vh) * 1.1;
@@ -283,7 +324,7 @@
             message:     payload.sponsorMessage || "",
             clickUrl:    payload.sponsorClickUrl || null,
           } : null;
-          fireDart(sponsor);
+          fireDart(sponsor, payload.shooterName || null);
         }
       } catch (_) { /* ignore parse errors */ }
     };
