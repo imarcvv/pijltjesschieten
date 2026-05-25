@@ -32,6 +32,7 @@ export default function Demo() {
 
   const shootDart = useCallback((power: number) => {
     const sponsor = getRandomSponsor();
+    // Use viewport dimensions — darts fly over what the user currently sees
     const startX = window.innerWidth * 0.01;
     const startY = window.innerHeight * 0.1 + Math.random() * window.innerHeight * 0.75;
     const angle = -6 + Math.random() * 12;
@@ -76,9 +77,17 @@ export default function Demo() {
   return (
     <div style={{ minHeight: "100vh", background: "#1a1a2e", fontFamily: "Verdana, Tahoma, Arial, sans-serif" }}>
 
+      {/* ── Dart arena — fixed overlay, always covers the visible viewport ── */}
+      {/* DartArena renders its own position:fixed container internally       */}
+      <DartArena
+        darts={flyingDarts}
+        onDartClick={d => setSelectedDart(d)}
+        onDartLanded={() => {}}
+      />
+
       {/* ── Top control bar ─────────────────────────────────────────────── */}
       <div style={{
-        position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000,
+        position: "fixed", top: 0, left: 0, right: 0, zIndex: 10000,
         background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
         borderBottom: "3px solid #e63946",
         padding: "10px 16px",
@@ -177,11 +186,11 @@ export default function Demo() {
       </div>
 
       {/* ── NU.nl desktop screenshot — scrollable content ────────────────── */}
-      {/* Top padding to clear the fixed control bar (~56px) */}
+      {/* paddingTop clears the fixed control bar (~56px)                    */}
       <div style={{ paddingTop: 56 }}>
         <img
           src={NUNL_DESKTOP}
-          alt="NU.nl desktop"
+          alt="NU.nl nieuwssite demo"
           style={{
             display: "block",
             width: "100%",
@@ -192,28 +201,11 @@ export default function Demo() {
         />
       </div>
 
-      {/* ── Dart arena — fixed overlay covering only the visible viewport ── */}
-      {/* position:fixed ensures darts fly only over what the user can see,  */}
-      {/* regardless of how far the screenshot is scrolled.                  */}
-      <div style={{
-        position: "fixed",
-        top: 0, left: 0,
-        width: "100vw", height: "100vh",
-        pointerEvents: "none",
-        zIndex: 500,
-      }}>
-        <DartArena
-          darts={flyingDarts}
-          onDartClick={d => setSelectedDart(d)}
-          onDartLanded={() => {}}
-        />
-      </div>
-
       {/* ── Instruction tip ─────────────────────────────────────────────── */}
       {showTip && isActive && (
         <div style={{
           position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
-          zIndex: 999,
+          zIndex: 10001,
           background: "rgba(0,0,0,0.85)", color: "white",
           padding: "12px 20px", borderRadius: 8,
           border: "1px solid rgba(255,215,0,0.4)",
@@ -230,7 +222,7 @@ export default function Demo() {
       {blowError && (
         <div style={{
           position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
-          zIndex: 999,
+          zIndex: 10001,
           background: "rgba(230,57,70,0.9)", color: "white",
           padding: "10px 18px", borderRadius: 6, fontSize: 13,
         }}>
@@ -246,21 +238,6 @@ export default function Demo() {
           onClose={() => setSelectedDart(null)}
         />
       )}
-
-      {/* ── DartArena pointer-events fix ───────────────────────────────── */}
-      <style>{`
-        #dart-arena {
-          position: absolute !important;
-          inset: 0 !important;
-          width: 100% !important;
-          height: 100% !important;
-          pointer-events: none;
-        }
-        #dart-arena .flying-dart {
-          pointer-events: auto;
-          cursor: pointer;
-        }
-      `}</style>
     </div>
   );
 }
