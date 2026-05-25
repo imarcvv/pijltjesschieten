@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useBlowDetection } from "@/hooks/useBlowDetection";
@@ -9,16 +9,14 @@ import { nanoid } from "nanoid";
 
 const SESSION_ID = `demo_${Math.random().toString(36).slice(2, 10)}`;
 
-// Real NU.nl screenshots uploaded as static assets
+// Real NU.nl desktop screenshot uploaded as static asset
 const NUNL_DESKTOP = "/manus-storage/nunl-desktop_f721dc8f.webp";
-const NUNL_MOBILE  = "/manus-storage/nunl-mobile-1_3e8af1d4.png";
 
 export default function Demo() {
   const [flyingDarts, setFlyingDarts] = useState<FlyingDart[]>([]);
   const [selectedDart, setSelectedDart] = useState<FlyingDart | null>(null);
   const [shotCount, setShotCount] = useState(0);
   const [showTip, setShowTip] = useState(true);
-  const containerRef = useRef<HTMLDivElement>(null);
   const utils = trpc.useUtils();
 
   const { data: sponsors } = trpc.sponsors.listActive.useQuery();
@@ -34,11 +32,8 @@ export default function Demo() {
 
   const shootDart = useCallback((power: number) => {
     const sponsor = getRandomSponsor();
-    const container = containerRef.current;
-    const vw = container ? container.offsetWidth : window.innerWidth;
-    const vh = container ? container.offsetHeight : window.innerHeight;
-    const startX = vw * 0.01;
-    const startY = vh * 0.1 + Math.random() * vh * 0.75;
+    const startX = window.innerWidth * 0.01;
+    const startY = window.innerHeight * 0.1 + Math.random() * window.innerHeight * 0.75;
     const angle = -6 + Math.random() * 12;
     const speed = 0.45 + power * 0.2;
     const spin = (Math.random() > 0.5 ? 1 : -1) * (0.5 + Math.random() * 0.8);
@@ -83,7 +78,7 @@ export default function Demo() {
 
       {/* ── Top control bar ─────────────────────────────────────────────── */}
       <div style={{
-        position: "sticky", top: 0, zIndex: 1000,
+        position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000,
         background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
         borderBottom: "3px solid #e63946",
         padding: "10px 16px",
@@ -181,6 +176,39 @@ export default function Demo() {
         </Link>
       </div>
 
+      {/* ── NU.nl desktop screenshot — scrollable content ────────────────── */}
+      {/* Top padding to clear the fixed control bar (~56px) */}
+      <div style={{ paddingTop: 56 }}>
+        <img
+          src={NUNL_DESKTOP}
+          alt="NU.nl desktop"
+          style={{
+            display: "block",
+            width: "100%",
+            height: "auto",
+            userSelect: "none",
+            pointerEvents: "none",
+          }}
+        />
+      </div>
+
+      {/* ── Dart arena — fixed overlay covering only the visible viewport ── */}
+      {/* position:fixed ensures darts fly only over what the user can see,  */}
+      {/* regardless of how far the screenshot is scrolled.                  */}
+      <div style={{
+        position: "fixed",
+        top: 0, left: 0,
+        width: "100vw", height: "100vh",
+        pointerEvents: "none",
+        zIndex: 500,
+      }}>
+        <DartArena
+          darts={flyingDarts}
+          onDartClick={d => setSelectedDart(d)}
+          onDartLanded={() => {}}
+        />
+      </div>
+
       {/* ── Instruction tip ─────────────────────────────────────────────── */}
       {showTip && isActive && (
         <div style={{
@@ -210,47 +238,6 @@ export default function Demo() {
         </div>
       )}
 
-      {/* ── NU.nl screenshot container — desktop ────────────────────────── */}
-      <div
-        ref={containerRef}
-        style={{ position: "relative", overflow: "hidden" }}
-      >
-        {/* Dart arena sits on top of the screenshot */}
-        <DartArena
-          darts={flyingDarts}
-          onDartClick={d => setSelectedDart(d)}
-          onDartLanded={() => {}}
-        />
-
-        {/* Desktop screenshot (hidden on mobile) */}
-        <img
-          src={NUNL_DESKTOP}
-          alt="NU.nl desktop"
-          className="nunl-desktop-img"
-          style={{
-            display: "block",
-            width: "100%",
-            height: "auto",
-            userSelect: "none",
-            pointerEvents: "none",
-          }}
-        />
-
-        {/* Mobile screenshot (hidden on desktop) */}
-        <img
-          src={NUNL_MOBILE}
-          alt="NU.nl mobiel"
-          className="nunl-mobile-img"
-          style={{
-            display: "block",
-            width: "100%",
-            height: "auto",
-            userSelect: "none",
-            pointerEvents: "none",
-          }}
-        />
-      </div>
-
       {/* ── Dart unfold modal ───────────────────────────────────────────── */}
       {selectedDart && (
         <DartUnfoldModal
@@ -260,26 +247,14 @@ export default function Demo() {
         />
       )}
 
-      {/* ── Responsive CSS ─────────────────────────────────────────────── */}
+      {/* ── DartArena pointer-events fix ───────────────────────────────── */}
       <style>{`
-        /* Desktop: show wide screenshot, hide mobile */
-        .nunl-desktop-img { display: block; }
-        .nunl-mobile-img  { display: none; }
-
-        /* Mobile (≤ 640px): show narrow screenshot, hide desktop */
-        @media (max-width: 640px) {
-          .nunl-desktop-img { display: none; }
-          .nunl-mobile-img  { display: block; }
-        }
-
-        /* Dart arena must cover the screenshot */
         #dart-arena {
           position: absolute !important;
           inset: 0 !important;
           width: 100% !important;
           height: 100% !important;
           pointer-events: none;
-          z-index: 500;
         }
         #dart-arena .flying-dart {
           pointer-events: auto;
