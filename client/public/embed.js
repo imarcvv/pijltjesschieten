@@ -18,7 +18,7 @@
   // ── Config ────────────────────────────────────────────────────────────────
   const BASE_URL = "https://pijltjesschieten.nl";
   const cfg = (typeof window !== "undefined" && window.PijltjesConfig) || {};
-  const MAX_DARTS  = cfg.maxDarts  ?? 5;
+  const MAX_DARTS  = cfg.maxDarts  ?? 10;
   const AUTO_START = cfg.autoStart !== false;
 
   const DART_IMAGES = [
@@ -287,13 +287,12 @@
       if (p < 1) {
         requestAnimationFrame(animate);
       } else {
+        // Dart has crossed the screen — fade out and free the slot immediately
+        wrapper.style.opacity = "0";
         setTimeout(() => {
-          wrapper.style.opacity = "0";
-          setTimeout(() => {
-            if (wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
-            activeDarts = Math.max(0, activeDarts - 1);
-          }, 300);
-        }, 8000);
+          if (wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+          activeDarts = Math.max(0, activeDarts - 1);
+        }, 300);
       }
     }
     requestAnimationFrame(animate);
@@ -315,8 +314,9 @@
           return;
         }
         if (payload.type === "dart") {
-          // Ignore events that were broadcast before we connected
-          if (payload.ts && payload.ts < streamConnectedAt) return;
+          // Ignore events that were broadcast more than 2s before we connected
+          // (small grace window to avoid dropping darts fired just as we connect)
+          if (payload.ts && streamConnectedAt > 0 && payload.ts < streamConnectedAt - 2000) return;
           // Build a sponsor-like object from the broadcast payload
           const sponsor = payload.sponsorName ? {
             name:        payload.sponsorName,

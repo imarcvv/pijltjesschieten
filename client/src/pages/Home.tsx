@@ -97,7 +97,8 @@ export default function Home() {
 
   const getRandomSponsor = useCallback((): DartSponsor | null => {
     if (!sponsors || sponsors.length === 0) return null;
-    const active = sponsors.filter(s => s.active);
+    // MySQL may return active as 1/0 (integer) instead of true/false
+    const active = sponsors.filter(s => s.active === true || (s.active as unknown) === 1);
     return active.length > 0 ? active[Math.floor(Math.random() * active.length)] as DartSponsor : null;
   }, [sponsors]);
 
