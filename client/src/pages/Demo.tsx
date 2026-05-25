@@ -9,14 +9,18 @@ import { nanoid } from "nanoid";
 
 const SESSION_ID = `demo_${Math.random().toString(36).slice(2, 10)}`;
 
-// Real NU.nl desktop screenshot uploaded as static asset
+// Static assets
 const NUNL_DESKTOP = "/manus-storage/nunl-desktop_f721dc8f.webp";
+const NUNL_MOBILE  = "/manus-storage/nunlmobile_8e6a78f6.jpg";
+
+type ViewMode = "desktop" | "mobile";
 
 export default function Demo() {
   const [flyingDarts, setFlyingDarts] = useState<FlyingDart[]>([]);
   const [selectedDart, setSelectedDart] = useState<FlyingDart | null>(null);
   const [shotCount, setShotCount] = useState(0);
   const [showTip, setShowTip] = useState(true);
+  const [viewMode, setViewMode] = useState<ViewMode>("desktop");
   const utils = trpc.useUtils();
 
   const { data: sponsors } = trpc.sponsors.listActive.useQuery();
@@ -32,7 +36,6 @@ export default function Demo() {
 
   const shootDart = useCallback((power: number) => {
     const sponsor = getRandomSponsor();
-    // Use viewport dimensions — darts fly over what the user currently sees
     const startX = window.innerWidth * 0.01;
     const startY = window.innerHeight * 0.1 + Math.random() * window.innerHeight * 0.75;
     const angle = -6 + Math.random() * 12;
@@ -74,11 +77,27 @@ export default function Demo() {
   const isActive = blowState === "ready" || blowState === "blowing" || blowState === "fired";
   const pct = Math.round(level * 100);
 
+  // Button style helper
+  const modeBtn = (mode: ViewMode) => ({
+    background: viewMode === mode
+      ? "linear-gradient(135deg, #e63946, #c1121f)"
+      : "rgba(255,255,255,0.08)",
+    color: viewMode === mode ? "#fff" : "#aaa",
+    border: viewMode === mode ? "1px solid #e63946" : "1px solid #444",
+    borderRadius: 6,
+    padding: "7px 14px",
+    cursor: "pointer" as const,
+    fontWeight: "bold" as const,
+    fontSize: 12,
+    letterSpacing: 0.4,
+    transition: "all 0.15s",
+    flexShrink: 0 as const,
+  });
+
   return (
     <div style={{ minHeight: "100vh", background: "#1a1a2e", fontFamily: "Verdana, Tahoma, Arial, sans-serif" }}>
 
-      {/* ── Dart arena — fixed overlay, always covers the visible viewport ── */}
-      {/* DartArena renders its own position:fixed container internally       */}
+      {/* ── Dart arena — fixed overlay ───────────────────────────────────── */}
       <DartArena
         darts={flyingDarts}
         onDartClick={d => setSelectedDart(d)}
@@ -91,7 +110,7 @@ export default function Demo() {
         background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
         borderBottom: "3px solid #e63946",
         padding: "10px 16px",
-        display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
+        display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap",
         boxShadow: "0 2px 12px rgba(0,0,0,0.5)",
       }}>
         {/* Logo */}
@@ -101,6 +120,16 @@ export default function Demo() {
             PIJLTJESSCHIETEN.NL
           </span>
         </Link>
+
+        {/* View mode toggle */}
+        <div style={{ display: "flex", gap: 4, background: "rgba(0,0,0,0.3)", borderRadius: 8, padding: 3 }}>
+          <button style={modeBtn("desktop")} onClick={() => setViewMode("desktop")}>
+            🖥 Desktop
+          </button>
+          <button style={modeBtn("mobile")} onClick={() => setViewMode("mobile")}>
+            📱 Mobiel
+          </button>
+        </div>
 
         <div style={{ flex: 1 }} />
 
@@ -129,7 +158,7 @@ export default function Demo() {
           </div>
         )}
 
-        {/* Schiet! button — fires a dart directly, no microphone needed */}
+        {/* Schiet! button */}
         <button
           onClick={() => shootDart(0.7)}
           style={{
@@ -185,20 +214,92 @@ export default function Demo() {
         </Link>
       </div>
 
-      {/* ── NU.nl desktop screenshot — scrollable content ────────────────── */}
-      {/* paddingTop clears the fixed control bar (~56px)                    */}
+      {/* ── Content area (below fixed bar) ──────────────────────────────── */}
       <div style={{ paddingTop: 56 }}>
-        <img
-          src={NUNL_DESKTOP}
-          alt="NU.nl nieuwssite demo"
-          style={{
-            display: "block",
-            width: "100%",
-            height: "auto",
-            userSelect: "none",
-            pointerEvents: "none",
-          }}
-        />
+
+        {/* DESKTOP view */}
+        {viewMode === "desktop" && (
+          <img
+            src={NUNL_DESKTOP}
+            alt="NU.nl nieuwssite desktop demo"
+            style={{
+              display: "block",
+              width: "100%",
+              height: "auto",
+              userSelect: "none",
+              pointerEvents: "none",
+            }}
+          />
+        )}
+
+        {/* MOBILE view — phone frame centered on dark background */}
+        {viewMode === "mobile" && (
+          <div style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "flex-start",
+            minHeight: "calc(100vh - 56px)",
+            background: "#0d0d1a",
+            padding: "32px 16px 48px",
+          }}>
+            {/* Phone frame */}
+            <div style={{
+              position: "relative",
+              width: 375,
+              maxWidth: "90vw",
+              background: "#111",
+              borderRadius: 44,
+              boxShadow: "0 0 0 3px #333, 0 0 0 6px #1a1a1a, 0 24px 80px rgba(0,0,0,0.8)",
+              padding: "16px 6px",
+              overflow: "hidden",
+            }}>
+              {/* Notch / dynamic island */}
+              <div style={{
+                width: 120,
+                height: 30,
+                background: "#000",
+                borderRadius: 20,
+                margin: "0 auto 10px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+              }}>
+                <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#1a1a1a", border: "1px solid #333" }} />
+                <div style={{ width: 36, height: 10, borderRadius: 6, background: "#1a1a1a", border: "1px solid #333" }} />
+              </div>
+
+              {/* Screen */}
+              <div style={{
+                borderRadius: 28,
+                overflow: "hidden",
+                background: "#fff",
+                lineHeight: 0,
+              }}>
+                <img
+                  src={NUNL_MOBILE}
+                  alt="NU.nl mobiele weergave demo"
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    height: "auto",
+                    userSelect: "none",
+                    pointerEvents: "none",
+                  }}
+                />
+              </div>
+
+              {/* Home bar */}
+              <div style={{
+                width: 120,
+                height: 4,
+                background: "#444",
+                borderRadius: 4,
+                margin: "10px auto 0",
+              }} />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Instruction tip ─────────────────────────────────────────────── */}
