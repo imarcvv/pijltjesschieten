@@ -132,6 +132,7 @@ export default function Home() {
         shooterName: shooterName || undefined,
         quoteText: quoteDart?.text ?? undefined,
         quoteAuthor: quoteDart?.author ?? undefined,
+        dartVariant: previewVariant,
         trajectoryData: { startX, startY, angle, speed, spin },
       },
       {

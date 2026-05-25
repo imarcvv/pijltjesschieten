@@ -19,6 +19,8 @@ export interface DartBroadcastPayload {
   /** Inspirational quote — set when this dart is a quote dart (no sponsor) */
   quoteText:       string | null;
   quoteAuthor:     string | null;
+  /** Dart color variant: 0=geel, 1=blauw, 2=wit — must match what was shown on the main site */
+  dartVariant:     0 | 1 | 2;
 }
 
 export function broadcastDartEvent(payload: DartBroadcastPayload): void {

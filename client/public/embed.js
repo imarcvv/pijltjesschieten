@@ -215,23 +215,23 @@
   function drainQueue() {
     while (dartQueue.length > 0 && activeDarts < MAX_DARTS) {
       const next = dartQueue.shift();
-      _launchDart(next.sponsor, next.shooterName, next.quote);
+      _launchDart(next.sponsor, next.shooterName, next.quote, next.dartVariant);
     }
   }
 
   // ── Fire a dart (public entry point — queues if busy) ─────────────────────
-  function fireDart(sponsor, shooterName, quote) {
+  function fireDart(sponsor, shooterName, quote, dartVariant) {
     if (!overlay) return;
     if (activeDarts < MAX_DARTS) {
-      _launchDart(sponsor, shooterName, quote);
+      _launchDart(sponsor, shooterName, quote, dartVariant);
     } else {
       // Queue the dart so it is shown as soon as a slot opens
-      dartQueue.push({ sponsor, shooterName, quote });
+      dartQueue.push({ sponsor: sponsor, shooterName: shooterName, quote: quote, dartVariant: dartVariant });
     }
   }
 
   // ── Internal: actually animate a dart across the screen ───────────────────
-  function _launchDart(sponsor, shooterName, quote) {
+  function _launchDart(sponsor, shooterName, quote, dartVariant) {
     if (!overlay) return;
 
     const vw = window.innerWidth;
@@ -247,7 +247,11 @@
 
     const startX   = dir.sx * vw;
     const startY   = dir.sy() * vh;
-    const dartImg  = DART_IMAGES[Math.floor(Math.random() * DART_IMAGES.length)];
+    // Use the variant sent by the server (same colour as on the main site), or random fallback
+    var imgIdx = (dartVariant === 0 || dartVariant === 1 || dartVariant === 2)
+      ? dartVariant
+      : Math.floor(Math.random() * DART_IMAGES.length);
+    const dartImg  = DART_IMAGES[imgIdx];
     const DART_W   = 220;
     const DART_H   = 38;
     const DURATION = 5500;
@@ -334,7 +338,10 @@
             text:   payload.quoteText,
             author: payload.quoteAuthor || "",
           } : null;
-          fireDart(sponsor, payload.shooterName || null, quote);
+          // Pass dartVariant so embed uses the same colour as the main site
+          var dartVariant = (payload.dartVariant === 0 || payload.dartVariant === 1 || payload.dartVariant === 2)
+            ? payload.dartVariant : null;
+          fireDart(sponsor, payload.shooterName || null, quote, dartVariant);
         }
       } catch (_) { /* ignore parse errors */ }
     };
