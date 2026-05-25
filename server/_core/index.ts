@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import { createServer } from "http";
 import net from "net";
+import path from "path";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
@@ -39,6 +40,18 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // CORS — allow embed.js to be loaded from any website
   app.use("/api/embed", cors({ origin: "*", methods: ["GET", "POST"], allowedHeaders: ["Content-Type"] }));
+
+  // Serve embed.js with no-cache headers so external sites always get the latest version
+  app.get("/embed.js", cors({ origin: "*" }), (_req, res) => {
+    const embedPath = process.env.NODE_ENV === "development"
+      ? path.join(process.cwd(), "client/public/embed.js")
+      : path.join(process.cwd(), "dist/public/embed.js");
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+    res.setHeader("Content-Type", "application/javascript");
+    res.sendFile(embedPath);
+  });
 
   // ── SSE stream — embed.js connects here to receive live dart events ────────
   app.get("/api/embed/stream", (req, res) => {
