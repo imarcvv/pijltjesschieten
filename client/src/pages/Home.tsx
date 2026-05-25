@@ -45,6 +45,7 @@ export default function Home() {
   const [selectedDart, setSelectedDart] = useState<FlyingDart | null>(null);
   const [shooterName, setShooterName] = useState("");
   const [isRolling, setIsRolling] = useState(false);
+  const [dartShotAnim, setDartShotAnim] = useState<"idle" | "shooting" | "reloading">("idle");
   const [galleryTab, setGalleryTab] = useState<"recent" | "gallery">("recent");
   const [totalShots, setTotalShots] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -74,6 +75,10 @@ export default function Home() {
 
     setIsRolling(true);
     setTimeout(() => setIsRolling(false), 500);
+    // Trigger shoot animation: slide out right, then slide in new dart
+    setDartShotAnim("shooting");
+    setTimeout(() => setDartShotAnim("reloading"), 420);
+    setTimeout(() => setDartShotAnim("idle"), 900);
 
     const spin = (Math.random() - 0.5) * 2;
 
@@ -268,11 +273,27 @@ export default function Home() {
               <div className="retro-panel-body">
 
                 {/* Dart preview */}
-                <div style={{ textAlign: "center", padding: "8px 0", borderBottom: "1px dotted #d0d8e8", marginBottom: 8 }}>
+                <div style={{ textAlign: "center", padding: "8px 0", borderBottom: "1px dotted #d0d8e8", marginBottom: 8, overflow: "hidden" }}>
                   <div style={{ fontSize: 10, color: "#666", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>
                     Jouw pijltje:
                   </div>
-                  <div className={isRolling ? "animate-dart-roll" : ""} style={{ display: "inline-block" }}>
+                  <div
+                    style={{
+                      display: "inline-block",
+                      transition: dartShotAnim === "shooting"
+                        ? "transform 0.38s cubic-bezier(0.55,0,1,0.45), opacity 0.32s ease"
+                        : dartShotAnim === "reloading"
+                        ? "none"
+                        : "transform 0.42s cubic-bezier(0.23,1,0.32,1), opacity 0.38s ease",
+                      transform: dartShotAnim === "shooting"
+                        ? "translateX(140%)"
+                        : dartShotAnim === "reloading"
+                        ? "translateX(-120%)"
+                        : "translateX(0)",
+                      opacity: dartShotAnim === "shooting" ? 0 : dartShotAnim === "reloading" ? 0 : 1,
+                    }}
+                    className={isRolling ? "animate-dart-roll" : ""}
+                  >
                     <PaperDart
                       sponsor={activeSponsor ? {
                         id: activeSponsor.id,
