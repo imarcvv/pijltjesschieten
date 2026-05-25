@@ -52,7 +52,7 @@ export default function Demo() {
     const startX = vw * 0.02;
     const startY = vh * 0.15 + Math.random() * vh * 0.65;
     const angle = -8 + Math.random() * 16;
-    const speed = 0.65 + power * 0.35;
+    const speed = 0.45 + power * 0.2; // slower speed for floating drift effect
     const spin = (Math.random() > 0.5 ? 1 : -1) * (0.8 + Math.random() * 1.2);
     const dartId = nanoid();
 

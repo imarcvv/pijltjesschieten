@@ -40,7 +40,7 @@ export default function Home() {
     const startX = -20;
     const startY = vh * 0.2 + Math.random() * vh * 0.6;
     const angle = -5 + Math.random() * 10;
-    const speed = 0.7 + power * 0.3;
+    const speed = 0.45 + power * 0.2; // slower speed for floating drift effect
 
     setIsRolling(true);
     setTimeout(() => setIsRolling(false), 500);

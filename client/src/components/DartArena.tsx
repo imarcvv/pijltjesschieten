@@ -30,7 +30,7 @@ interface AnimatedDart extends FlyingDart {
   elapsed: number;
 }
 
-const FLIGHT_DURATION = 1800; // ms
+const FLIGHT_DURATION = 2400; // ms — slow floating arc (~2 seconds)
 const REST_DURATION = 8000; // ms darts stay on screen
 
 export function DartArena({ darts, onDartClick, onDartLanded }: DartArenaProps) {
@@ -75,7 +75,8 @@ export function DartArena({ darts, onDartClick, onDartLanded }: DartArenaProps) 
           if (dart.phase === "flying") {
             const elapsed = dart.elapsed + delta;
             const progress = Math.min(elapsed / FLIGHT_DURATION, 1);
-            const eased = easeOutCubic(progress);
+            // Use a gentle linear-ish ease for a slow floating drift
+            const eased = easeOutGentle(progress);
 
             const vw = window.innerWidth;
             const vh = window.innerHeight;
@@ -83,13 +84,13 @@ export function DartArena({ darts, onDartClick, onDartLanded }: DartArenaProps) 
             const distance = dart.speed * vw * 0.8;
 
             const x = dart.startX + Math.cos(rad) * distance * eased;
-            // Arc: parabolic y with slight gravity
+            // Gentle floating arc with minimal gravity
             const arcY = Math.sin(rad) * distance * eased;
-            const gravity = progress * progress * vh * 0.15;
+            const gravity = progress * progress * vh * 0.06; // reduced gravity for floaty feel
             const y = dart.startY + arcY + gravity;
 
-            const rotation = dart.angle + dart.spin * progress * 720;
-            const opacity = progress > 0.85 ? 1 - (progress - 0.85) / 0.15 : 1;
+            const rotation = dart.angle + dart.spin * progress * 360; // slower spin
+            const opacity = progress > 0.88 ? 1 - (progress - 0.88) / 0.12 : 1;
 
             if (progress >= 1) {
               changed = true;
@@ -157,6 +158,12 @@ export function DartArena({ darts, onDartClick, onDartLanded }: DartArenaProps) 
 
 function easeOutCubic(t: number): number {
   return 1 - Math.pow(1 - t, 3);
+}
+
+// Gentle ease: starts at full speed, decelerates softly — gives a floating drift feel
+function easeOutGentle(t: number): number {
+  // Quadratic ease-out: smooth but not too aggressive
+  return 1 - Math.pow(1 - t, 2);
 }
 
 export default DartArena;
