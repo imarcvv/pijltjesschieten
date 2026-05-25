@@ -3,7 +3,7 @@ import { useRef, useState, useCallback, useEffect } from "react";
 export type BlowState = "idle" | "requesting" | "ready" | "blowing" | "fired" | "error";
 
 interface UseBlowDetectionOptions {
-  /** RMS threshold 0-1 to trigger a shot. Default 0.28 (requires deliberate blow) */
+  /** RMS threshold 0-1 to trigger a shot. Default 0.12 (requires a clear blow but not extreme force) */
   threshold?: number;
   /** How long (ms) the blow must sustain before firing. Default 120ms */
   sustainMs?: number;
@@ -14,8 +14,8 @@ interface UseBlowDetectionOptions {
 }
 
 export function useBlowDetection({
-  threshold = 0.28,
-  sustainMs = 120,
+  threshold = 0.12,
+  sustainMs = 100,
   cooldownMs = 1500,
   onFire,
   onLevelChange,

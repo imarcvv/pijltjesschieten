@@ -81,7 +81,7 @@ export default function Home() {
   }, [getRandomSponsor, fireDartMutation, shooterName]);
 
   const { state: blowState, level, start: startListening, stop: stopListening, error: blowError } =
-    useBlowDetection({ onFire: shootDart, threshold: 0.28, sustainMs: 80 });
+    useBlowDetection({ onFire: shootDart, threshold: 0.12, sustainMs: 80 });
   const isListening = blowState !== "idle" && blowState !== "error";
 
   const handleDartClick = useCallback((dart: FlyingDart) => {

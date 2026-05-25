@@ -72,7 +72,7 @@ export default function Demo() {
   }, [getRandomSponsor, fireDartMutation]);
 
   const { state: blowState, level, error: blowError, start: startBlow, stop: stopBlow } = useBlowDetection({
-    threshold: 0.28, sustainMs: 120, cooldownMs: 1500, onFire: shootDart,
+    threshold: 0.12, sustainMs: 100, cooldownMs: 1500, onFire: shootDart,
   });
 
   const isActive = blowState === "ready" || blowState === "blowing" || blowState === "fired";
@@ -125,19 +125,39 @@ export default function Demo() {
           </div>
         )}
 
+        {/* Schiet! button — fires a dart directly, no microphone needed */}
+        <button
+          onClick={() => shootDart(0.7)}
+          style={{
+            background: "linear-gradient(135deg, #ffd700, #f4a200)",
+            color: "#1a1a2e", border: "none", borderRadius: 6,
+            padding: "8px 18px", cursor: "pointer", fontWeight: "bold",
+            fontSize: 14, letterSpacing: 0.5,
+            boxShadow: "0 2px 10px rgba(255,215,0,0.5)",
+            transition: "transform 0.1s, box-shadow 0.1s",
+            flexShrink: 0,
+          }}
+          onMouseDown={e => (e.currentTarget.style.transform = "scale(0.95)")}
+          onMouseUp={e => (e.currentTarget.style.transform = "scale(1)")}
+          onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
+        >
+          🎯 Schiet!
+        </button>
+
         {/* Blow button */}
         {!isActive ? (
           <button
             onClick={startBlow}
             style={{
-              background: "linear-gradient(135deg, #e63946, #c1121f)",
+              background: "linear-gradient(135deg, #4a7ab5, #2c5f9e)",
               color: "white", border: "none", borderRadius: 6,
-              padding: "8px 16px", cursor: "pointer", fontWeight: "bold",
-              fontSize: 13, letterSpacing: 0.5,
-              boxShadow: "0 2px 8px rgba(230,57,70,0.4)",
+              padding: "8px 14px", cursor: "pointer", fontWeight: "bold",
+              fontSize: 12, letterSpacing: 0.5,
+              boxShadow: "0 2px 8px rgba(74,122,181,0.4)",
+              flexShrink: 0,
             }}
           >
-            🎯 Activeer blaaspijp
+            💨 Blaas
           </button>
         ) : (
           <button
@@ -145,10 +165,11 @@ export default function Demo() {
             style={{
               background: "rgba(255,255,255,0.1)", color: "#aaa",
               border: "1px solid #555", borderRadius: 6,
-              padding: "8px 16px", cursor: "pointer", fontSize: 12,
+              padding: "8px 12px", cursor: "pointer", fontSize: 12,
+              flexShrink: 0,
             }}
           >
-            ✕ Stop
+            💨 Stop mic
           </button>
         )}
 
