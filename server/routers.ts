@@ -10,6 +10,7 @@ import {
   fireDart, getRecentDarts, getDartById, getDartStats,
 } from "./db";
 import { storagePut } from "./storage";
+import { broadcastDartEvent } from "./_core/embedBroadcast";  // SSE broadcast
 
 // Admin guard middleware
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -147,6 +148,18 @@ export const appRouter = router({
           firedAt: new Date(),
         });
         const dart = await getDartById(id);
+        // Broadcast to all embed.js clients in real-time
+        if (dart) {
+          const sponsor = input.sponsorId ? await getSponsorById(input.sponsorId) : null;
+          broadcastDartEvent({
+            sponsorId:       sponsor?.id ?? null,
+            sponsorName:     sponsor?.name ?? null,
+            sponsorLogoUrl:  sponsor?.logoUrl ?? null,
+            sponsorColor:    sponsor?.color ?? null,
+            sponsorMessage:  sponsor?.message ?? null,
+            sponsorClickUrl: sponsor?.clickUrl ?? null,
+          });
+        }
         return dart;
       }),
 

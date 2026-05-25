@@ -10,6 +10,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { getActiveSponsors } from "../db";
+import { sseClients } from "./embedBroadcast";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -37,7 +38,18 @@ async function startServer() {
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // CORS — allow embed.js to be loaded from any website
-  app.use("/api/embed", cors({ origin: "*", methods: ["GET"] }));
+  app.use("/api/embed", cors({ origin: "*", methods: ["GET", "POST"], allowedHeaders: ["Content-Type"] }));
+
+  // ── SSE stream — embed.js connects here to receive live dart events ────────
+  app.get("/api/embed/stream", (req, res) => {
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
+    const hb = setInterval(() => { try { res.write(": heartbeat\n\n"); } catch { clearInterval(hb); } }, 25000);
+    sseClients.add(res);
+    req.on("close", () => { sseClients.delete(res); clearInterval(hb); });
+  });
 
   // Public embed API: active sponsors (no auth required, CORS open)
   app.get("/api/embed/sponsors", async (_req, res) => {
