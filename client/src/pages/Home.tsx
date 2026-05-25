@@ -177,15 +177,11 @@ export default function Home() {
           <a href="/">🏠 HOME</a>
           <a href="#schieten">🎯 SCHIETEN</a>
           <a href="#galerij">📋 GALERIJ</a>
-          <Link href="/demo">
-            <a style={{ color: "#ffffff", textDecoration: "none", fontSize: 11, fontWeight: "bold", padding: "5px 10px", display: "inline-block", borderRight: "1px solid rgba(255,255,255,0.2)" }}>
+          <Link href="/demo" style={{ color: "#ffffff", textDecoration: "none", fontSize: 11, fontWeight: "bold", padding: "5px 10px", display: "inline-block", borderRight: "1px solid rgba(255,255,255,0.2)" }}>
               🗞️ DEMO NU.NL
-            </a>
           </Link>
-          <Link href="/admin">
-            <a style={{ color: "#ffdd44", textDecoration: "none", fontSize: 11, fontWeight: "bold", padding: "5px 10px", display: "inline-block" }}>
+          <Link href="/admin" style={{ color: "#ffdd44", textDecoration: "none", fontSize: 11, fontWeight: "bold", padding: "5px 10px", display: "inline-block" }}>
               ⚙️ ADMIN
-            </a>
           </Link>
           <div style={{ marginLeft: "auto", padding: "3px 8px", fontSize: 10, color: "rgba(255,255,255,0.7)" }}>
             {new Date().toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" })}
