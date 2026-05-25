@@ -64,6 +64,7 @@ export default function Home() {
   const [shooterName, setShooterName] = useState("");
   const [isRolling, setIsRolling] = useState(false);
   const [dartShotAnim, setDartShotAnim] = useState<"idle" | "shooting" | "reloading">("idle");
+  const [previewVariant, setPreviewVariant] = useState<0 | 1 | 2>(() => (Math.floor(Math.random() * 3)) as 0 | 1 | 2);
   const [galleryTab, setGalleryTab] = useState<"recent" | "gallery">("recent");
   const [totalShots, setTotalShots] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -122,6 +123,7 @@ export default function Home() {
             firedAt: Date.now(),
             dbId: dartResult?.id,
             shooterName: shooterName || null,
+            dartVariant: previewVariant, // use the same color as the preview dart
             sponsor: sponsor ? {
               ...sponsor,
               prizeText: dartResult?.sponsor?.prizeText ?? undefined,
@@ -131,6 +133,8 @@ export default function Home() {
           };
           setFlyingDarts(prev => [...prev, newDart]);
           setTotalShots(prev => prev + 1);
+          // Pick a new random variant for the next dart that slides in
+          setPreviewVariant((Math.floor(Math.random() * 3)) as 0 | 1 | 2);
         },
       }
     );
@@ -322,6 +326,7 @@ export default function Home() {
                         message: activeSponsor.message,
                         clickUrl: activeSponsor.clickUrl,
                       } : null}
+                      variant={previewVariant}
                       width={200}
                       height={32}
                       spinning={blowState === "blowing"}
