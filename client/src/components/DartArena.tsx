@@ -41,15 +41,20 @@ const REST_DURATION   = 8000; // ms
 
 // 4 straight-line directions
 // sx/sy are fractions of viewport width/height for start position
+// The dart image (pijltje.png) points LEFT by default.
+// So: flying right  → rotate 180°  (flip to point right)
+//     flying left   → rotate 0°    (already points left)
+//     diagonal L→R  → rotate 180° + tilt
+//     diagonal R→L  → rotate 0°   + tilt
 const DIRECTIONS = [
-  // Left → Right
-  { sx: -0.05, sy: () => 0.15 + Math.random() * 0.7, dx: 1,  dy: 0,    angle: 0 },
-  // Right → Left
-  { sx: 1.05,  sy: () => 0.15 + Math.random() * 0.7, dx: -1, dy: 0,    angle: 180 },
-  // Top-left → Bottom-right (~24°)
-  { sx: -0.05, sy: () => Math.random() * 0.3,         dx: 1,  dy: 0.45, angle: 24 },
-  // Top-right → Bottom-left
-  { sx: 1.05,  sy: () => Math.random() * 0.3,         dx: -1, dy: 0.45, angle: 180 - 24 },
+  // Left → Right (image points left, so flip 180°)
+  { sx: -0.05, sy: () => 0.15 + Math.random() * 0.7, dx: 1,  dy: 0,    angle: 180 },
+  // Right → Left (image already points left, 0°)
+  { sx: 1.05,  sy: () => 0.15 + Math.random() * 0.7, dx: -1, dy: 0,    angle: 0 },
+  // Top-left → Bottom-right (~24° tilt, flipped)
+  { sx: -0.05, sy: () => Math.random() * 0.3,         dx: 1,  dy: 0.45, angle: 180 + 24 },
+  // Top-right → Bottom-left (~-24° tilt, not flipped)
+  { sx: 1.05,  sy: () => Math.random() * 0.3,         dx: -1, dy: 0.45, angle: -24 },
 ] as const;
 
 export function DartArena({ darts, onDartClick, onDartLanded }: DartArenaProps) {
