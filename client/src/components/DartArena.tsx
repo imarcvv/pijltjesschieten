@@ -83,7 +83,13 @@ export function DartArena({ darts, onDartClick, onDartLanded }: DartArenaProps) 
         const startX = dir.sx * vw;
         const startY = dir.sy() * vh;
         const travelDistance = Math.sqrt(vw * vw + vh * vh) * 1.1;
-        const dartVariant = (Math.floor(Math.random() * 3)) as 0 | 1 | 2;
+        // Map sponsor name to dart color variant
+        const sponsorName = d.sponsor?.name?.toLowerCase() ?? "";
+        const dartVariant: 0 | 1 | 2 =
+          sponsorName.includes("wehkamp") ? 0 :
+          sponsorName.includes("anwb")    ? 1 :
+          sponsorName.includes("veronica") ? 2 :
+          (Math.floor(Math.random() * 3)) as 0 | 1 | 2;
 
         return {
           ...d,

@@ -40,6 +40,33 @@ function playWhoosh() {
   } catch { /* audio not available */ }
 }
 
+function playWhomp() {
+  try {
+    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    // Short low-frequency thud/whomp: sine wave at ~80Hz with quick decay
+    const duration = 0.22;
+    const bufferSize = Math.floor(ctx.sampleRate * duration);
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      const t = i / ctx.sampleRate;
+      // Sine wave with pitch drop (80→40 Hz) and amplitude envelope
+      const freq = 80 - 40 * (t / duration);
+      data[i] = Math.sin(2 * Math.PI * freq * t) * Math.pow(1 - t / duration, 1.5);
+    }
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.35, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
+    source.connect(gain);
+    gain.connect(ctx.destination);
+    source.start();
+    source.stop(ctx.currentTime + duration);
+    source.onended = () => ctx.close();
+  } catch { /* audio not available */ }
+}
+
 export default function Home() {
   const [flyingDarts, setFlyingDarts] = useState<FlyingDart[]>([]);
   const [selectedDart, setSelectedDart] = useState<FlyingDart | null>(null);
@@ -78,7 +105,7 @@ export default function Home() {
     // Trigger shoot animation: slide out right, then slide in new dart
     setDartShotAnim("shooting");
     setTimeout(() => setDartShotAnim("reloading"), 420);
-    setTimeout(() => setDartShotAnim("idle"), 900);
+    setTimeout(() => { setDartShotAnim("idle"); playWhomp(); }, 900);
 
     const spin = (Math.random() - 0.5) * 2;
 

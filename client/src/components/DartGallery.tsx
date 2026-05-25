@@ -6,6 +6,7 @@ import { DartUnfoldModal } from "./DartUnfoldModal";
 interface SelectedDartInfo {
   sponsor: DartSponsor | null;
   isGolden: boolean;
+  shooterName?: string | null;
 }
 
 export function DartGallery() {
@@ -16,8 +17,8 @@ export function DartGallery() {
 
   const [selectedDartInfo, setSelectedDartInfo] = useState<SelectedDartInfo | null>(null);
 
-  const handleDartClick = (sponsor: DartSponsor | null, isGolden: boolean) => {
-    setSelectedDartInfo({ sponsor, isGolden });
+  const handleDartClick = (sponsor: DartSponsor | null, isGolden: boolean, shooterName?: string | null) => {
+    setSelectedDartInfo({ sponsor, isGolden, shooterName });
   };
 
   if (isLoading) {
@@ -69,7 +70,7 @@ export function DartGallery() {
           return (
             <button
               key={dart.id}
-              onClick={() => handleDartClick(sponsor, isGolden)}
+              onClick={() => handleDartClick(sponsor, isGolden, dart.shooterName)}
               title={`${isGolden ? "🏆 Gouden pijltje" : "Pijltje"} van ${sponsor?.name ?? "onbekend"} — klik om te openen`}
               style={{
                 display: "block",
@@ -161,6 +162,7 @@ export function DartGallery() {
         <DartUnfoldModal
           sponsor={selectedDartInfo.sponsor}
           isGolden={selectedDartInfo.isGolden}
+          shooterName={selectedDartInfo.shooterName}
           onClose={() => setSelectedDartInfo(null)}
         />
       )}
