@@ -297,22 +297,30 @@ export default function Home() {
                   </div>
                 )}
 
-                {/* Shoot button */}
-                <div style={{ textAlign: "center" }}>
+                {/* Shoot button + direct fire button */}
+                <div style={{ display: "flex", gap: 8, alignItems: "stretch" }}>
                   <button
                     className={`retro-btn ${isListening ? "retro-btn-blue" : "retro-btn-orange"}`}
-                    style={{ fontSize: 13, padding: "5px 20px", width: "100%" }}
+                    style={{ fontSize: 13, padding: "5px 14px", flex: 1 }}
                     onClick={toggleMic}
                   >
                     {isListening
                       ? "🛑 Stop microfoon"
-                      : "🎯 Klik om te starten — blaas dan hard!"}
+                      : "🎯 Blaas!"}
+                  </button>
+                  <button
+                    className="retro-btn retro-btn-green"
+                    style={{ fontSize: 13, padding: "5px 14px", whiteSpace: "nowrap" }}
+                    onClick={() => shootDart(0.8)}
+                    title="Schiet direct een pijltje zonder microfoon"
+                  >
+                    🏹 Schiet!
                   </button>
                 </div>
 
                 {!isListening && (
                   <div style={{ fontSize: 10, color: "#888", marginTop: 6, textAlign: "center" }}>
-                    Klik op de knop en blaas <strong>hard</strong> in je microfoon om een pijltje te schieten
+                    Blaas in je microfoon <em>of</em> klik op <strong>Schiet!</strong> om direct een pijltje te sturen
                   </div>
                 )}
               </div>
