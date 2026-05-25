@@ -10,32 +10,49 @@ import { nanoid } from "nanoid";
 
 const SESSION_ID = `session_${Math.random().toString(36).slice(2, 10)}`;
 
-/** Play a short whoosh sound via Web Audio API — no external file needed */
+/** Play a long "sjoeffffff" whoosh sound via Web Audio API — no external file needed */
 function playWhoosh() {
   try {
     const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-    const bufferSize = ctx.sampleRate * 0.35;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const duration = 1.4; // seconds — long sjoeffffff
+    const sr = ctx.sampleRate;
+    const bufferSize = Math.floor(sr * duration);
+
+    // White noise buffer
+    const buffer = ctx.createBuffer(1, bufferSize, sr);
     const data = buffer.getChannelData(0);
     for (let i = 0; i < bufferSize; i++) {
-      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 2.2);
+      data[i] = Math.random() * 2 - 1;
     }
+
     const source = ctx.createBufferSource();
     source.buffer = buffer;
-    // Band-pass filter to shape the whoosh
-    const filter = ctx.createBiquadFilter();
-    filter.type = "bandpass";
-    filter.frequency.setValueAtTime(800, ctx.currentTime);
-    filter.frequency.linearRampToValueAtTime(200, ctx.currentTime + 0.35);
-    filter.Q.value = 0.8;
+
+    // High-pass to remove rumble
+    const hp = ctx.createBiquadFilter();
+    hp.type = "highpass";
+    hp.frequency.value = 600;
+
+    // Sweeping band-pass: starts high (sibilant "sj"), sweeps down to low hiss ("fffff")
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.Q.value = 1.2;
+    bp.frequency.setValueAtTime(3200, ctx.currentTime);          // sharp "sj" attack
+    bp.frequency.exponentialRampToValueAtTime(320, ctx.currentTime + duration * 0.85); // long tail
+
+    // Gain envelope: quick attack, long sustain, fade out at end
     const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.55, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.35);
-    source.connect(filter);
-    filter.connect(gain);
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.7, ctx.currentTime + 0.05);  // fast attack
+    gain.gain.setValueAtTime(0.7, ctx.currentTime + duration * 0.6); // sustain
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + duration); // fade out
+
+    source.connect(hp);
+    hp.connect(bp);
+    bp.connect(gain);
     gain.connect(ctx.destination);
     source.start();
-    source.stop(ctx.currentTime + 0.35);
+    source.stop(ctx.currentTime + duration);
     source.onended = () => ctx.close();
   } catch { /* audio not available */ }
 }

@@ -40,27 +40,35 @@
       var AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return;
       var ctx = new AudioCtx();
-      var bufferSize = Math.floor(ctx.sampleRate * 0.35);
-      var buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      var duration = 1.4;
+      var sr = ctx.sampleRate;
+      var bufferSize = Math.floor(sr * duration);
+      var buffer = ctx.createBuffer(1, bufferSize, sr);
       var data = buffer.getChannelData(0);
       for (var i = 0; i < bufferSize; i++) {
-        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 2.2);
+        data[i] = Math.random() * 2 - 1;
       }
       var source = ctx.createBufferSource();
       source.buffer = buffer;
-      var filter = ctx.createBiquadFilter();
-      filter.type = "bandpass";
-      filter.frequency.setValueAtTime(800, ctx.currentTime);
-      filter.frequency.linearRampToValueAtTime(200, ctx.currentTime + 0.35);
-      filter.Q.value = 0.8;
+      var hp = ctx.createBiquadFilter();
+      hp.type = "highpass";
+      hp.frequency.value = 600;
+      var bp = ctx.createBiquadFilter();
+      bp.type = "bandpass";
+      bp.Q.value = 1.2;
+      bp.frequency.setValueAtTime(3200, ctx.currentTime);
+      bp.frequency.exponentialRampToValueAtTime(320, ctx.currentTime + duration * 0.85);
       var gain = ctx.createGain();
-      gain.gain.setValueAtTime(0.55, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.35);
-      source.connect(filter);
-      filter.connect(gain);
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.7, ctx.currentTime + 0.05);
+      gain.gain.setValueAtTime(0.7, ctx.currentTime + duration * 0.6);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
+      source.connect(hp);
+      hp.connect(bp);
+      bp.connect(gain);
       gain.connect(ctx.destination);
       source.start();
-      source.stop(ctx.currentTime + 0.35);
+      source.stop(ctx.currentTime + duration);
       source.onended = function() { ctx.close(); };
     } catch(e) { /* audio not available */ }
   }
