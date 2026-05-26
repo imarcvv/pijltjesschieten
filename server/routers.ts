@@ -134,39 +134,45 @@ export const appRouter = router({
         }).optional(),
       }))
       .mutation(async ({ input }) => {
-        // Determine golden dart status server-side based on sponsor's goldenChance
+        // Fetch sponsor once (needed for golden-dart check AND broadcast)
+        const sponsor = input.sponsorId ? await getSponsorById(input.sponsorId) : null;
+
+        // Determine golden dart status server-side
         let isGolden = false;
-        if (input.sponsorId) {
-          const sponsor = await getSponsorById(input.sponsorId);
-          if (sponsor && sponsor.goldenChance > 0) {
-            isGolden = Math.random() < sponsor.goldenChance;
-          }
+        if (sponsor && sponsor.goldenChance > 0) {
+          isGolden = Math.random() < sponsor.goldenChance;
         }
-        const id = await fireDart({
-          sponsorId: input.sponsorId ?? null,
-          sessionId: input.sessionId,
-          shooterName: input.shooterName ?? null,
-          trajectoryData: input.trajectoryData ?? null,
-          isGolden,
-          firedAt: new Date(),
-        });
+
+        // Insert dart into DB and broadcast to embed clients in parallel.
+        // The broadcast does NOT wait for getDartById — all data is already available.
+        const [id] = await Promise.all([
+          fireDart({
+            sponsorId: input.sponsorId ?? null,
+            sessionId: input.sessionId,
+            shooterName: input.shooterName ?? null,
+            trajectoryData: input.trajectoryData ?? null,
+            isGolden,
+            firedAt: new Date(),
+          }),
+          Promise.resolve().then(() => {
+            // Fire-and-forget broadcast — runs immediately alongside the DB insert
+            broadcastDartEvent({
+              sponsorId:       sponsor?.id ?? null,
+              sponsorName:     sponsor?.name ?? null,
+              sponsorLogoUrl:  sponsor?.logoUrl ?? null,
+              sponsorColor:    sponsor?.color ?? null,
+              sponsorMessage:  sponsor?.message ?? null,
+              sponsorClickUrl: sponsor?.clickUrl ?? null,
+              shooterName:     input.shooterName ?? null,
+              quoteText:       input.quoteText ?? null,
+              quoteAuthor:     input.quoteAuthor ?? null,
+              dartVariant:     (input.dartVariant ?? (Math.floor(Math.random() * 3) as 0 | 1 | 2)),
+            });
+          }),
+        ]);
+
+        // Return the full dart row (with sponsor join) to the caller
         const dart = await getDartById(id);
-        // Broadcast to all embed.js clients in real-time
-        if (dart) {
-          const sponsor = input.sponsorId ? await getSponsorById(input.sponsorId) : null;
-          broadcastDartEvent({
-            sponsorId:       sponsor?.id ?? null,
-            sponsorName:     sponsor?.name ?? null,
-            sponsorLogoUrl:  sponsor?.logoUrl ?? null,
-            sponsorColor:    sponsor?.color ?? null,
-            sponsorMessage:  sponsor?.message ?? null,
-            sponsorClickUrl: sponsor?.clickUrl ?? null,
-            shooterName:     input.shooterName ?? null,
-            quoteText:       input.quoteText ?? null,
-            quoteAuthor:     input.quoteAuthor ?? null,
-            dartVariant:     (input.dartVariant ?? (Math.floor(Math.random() * 3) as 0 | 1 | 2)),
-          });
-        }
         return dart;
       }),
 
