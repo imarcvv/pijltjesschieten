@@ -237,16 +237,36 @@
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
-    const directions = [
-      { sx: -0.05, sy: function() { return 0.15 + Math.random() * 0.7; }, dx: 1,  dy: 0,    angle: 0   },
-      { sx: 1.05,  sy: function() { return 0.15 + Math.random() * 0.7; }, dx: -1, dy: 0,    angle: 180 },
-      { sx: -0.05, sy: function() { return Math.random() * 0.35; },        dx: 1,  dy: 0.25, angle: 14  },
-      { sx: 1.05,  sy: function() { return Math.random() * 0.35; },        dx: -1, dy: 0.25, angle: 166 },
+    // 8 directions: L→R, R→L, top-L→bottom-R, top-R→bottom-L,
+    // plus mid-height diagonals for variety.
+    // Each entry: startX/Y (fractions of vw/vh), endX/Y (fractions), rotationDeg
+    // Rotation = angle the dart image should face (0 = pointing right)
+    var r = Math.random;
+    var dirs = [
+      // Left → Right (horizontal, random vertical position)
+      { x0: -0.05, y0: 0.1 + r() * 0.8,  x1: 1.1,  y1: null,         rot: 0   },
+      // Right → Left (horizontal, random vertical position)
+      { x0: 1.05,  y0: 0.1 + r() * 0.8,  x1: -0.1, y1: null,         rot: 180 },
+      // Top-left → Bottom-right (diagonal ~30°)
+      { x0: -0.05, y0: -0.05,             x1: 1.1,  y1: 1.1,          rot: 42  },
+      // Top-right → Bottom-left (diagonal ~150°)
+      { x0: 1.05,  y0: -0.05,             x1: -0.1, y1: 1.1,          rot: 138 },
+      // Top-left → Bottom-right (shallower ~18°)
+      { x0: -0.05, y0: 0.1 + r() * 0.3,  x1: 1.1,  y1: 0.6 + r() * 0.4, rot: 18 },
+      // Top-right → Bottom-left (shallower ~162°)
+      { x0: 1.05,  y0: 0.1 + r() * 0.3,  x1: -0.1, y1: 0.6 + r() * 0.4, rot: 162 },
+      // Bottom-left → Top-right (upward diagonal ~-20°)
+      { x0: -0.05, y0: 0.6 + r() * 0.3,  x1: 1.1,  y1: 0.1 + r() * 0.3, rot: -20 },
+      // Bottom-right → Top-left (upward diagonal ~200°)
+      { x0: 1.05,  y0: 0.6 + r() * 0.3,  x1: -0.1, y1: 0.1 + r() * 0.3, rot: 200 },
     ];
-    const dir = directions[Math.floor(Math.random() * directions.length)];
+    var dir = dirs[Math.floor(Math.random() * dirs.length)];
 
-    const startX   = dir.sx * vw;
-    const startY   = dir.sy() * vh;
+    var startX = dir.x0 * vw;
+    var startY = dir.y0 * vh;
+    var endX   = dir.x1 * vw;
+    var endY   = (dir.y1 !== null) ? dir.y1 * vh : startY; // horizontal = same Y
+
     // Use the variant sent by the server (same colour as on the main site), or random fallback
     var imgIdx = (dartVariant === 0 || dartVariant === 1 || dartVariant === 2)
       ? dartVariant
@@ -261,7 +281,7 @@
       position:      "absolute",
       left:          startX + "px",
       top:           startY + "px",
-      transform:     "translate(-50%, -50%) rotate(" + dir.angle + "deg)",
+      transform:     "translate(-50%, -50%) rotate(" + dir.rot + "deg)",
       display:       "flex",
       flexDirection: "row",
       alignItems:    "center",
@@ -284,12 +304,6 @@
     wrapper.addEventListener("click", function() { showPopup(sponsor, shooterName, quote); });
     overlay.appendChild(wrapper);
     activeDarts++;
-
-    // Animate across screen
-    const travelDist = Math.sqrt(vw * vw + vh * vh) * 1.1;
-    const rad  = (dir.angle * Math.PI) / 180;
-    const endX = startX + Math.cos(rad) * travelDist * dir.dx;
-    const endY = startY + Math.sin(rad) * travelDist * Math.abs(dir.dy) + dir.dy * travelDist;
 
     var startTs = null;
     function animate(ts) {
