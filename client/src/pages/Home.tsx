@@ -449,11 +449,11 @@ export default function Home() {
                 ❓ Hoe werkt het?
               </div>
               <div className="retro-panel-body">
-                <ol style={{ margin: 0, paddingLeft: 18, fontSize: 11, lineHeight: 1.8 }}>
-                  <li>Klik op de <strong>oranje knop</strong> om de microfoon te activeren</li>
-                  <li>Blaas <strong>hard</strong> in je microfoon (niet te zacht!)</li>
-                  <li>Kijk hoe je pijltje over het scherm vliegt! 🎯</li>
-                  <li>Ergens in Nederland vliegt jouw pijltje over een scherm. Klikt iemand op jouw vliegende pijltje, dan is er een kans dat het een <strong style={{ color: "#cc8800" }}>gouden pijltje</strong> is! En dan wint hij of zij een prijs! 🏆</li>
+                <ol style={{ margin: 0, paddingLeft: 0, fontSize: 11, lineHeight: 1.8, listStyle: "none" }}>
+                  <li><strong>1:</strong> Klik op de <strong>oranje knop</strong> om de microfoon te activeren</li>
+                  <li><strong>2:</strong> Blaas <strong>hard</strong> in je microfoon (niet te zacht!)</li>
+                  <li><strong>3:</strong> Kijk hoe je pijltje over het scherm vliegt! 🎯</li>
+                  <li><strong>4:</strong> Ergens in Nederland vliegt jouw pijltje over een scherm. Klikt iemand op jouw vliegende pijltje, dan is er een kans dat het een <strong style={{ color: "#cc8800" }}>gouden pijltje</strong> is! En dan wint hij of zij een prijs! 🏆</li>
                 </ol>
               </div>
             </div>
