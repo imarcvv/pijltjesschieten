@@ -238,7 +238,7 @@ export default function MobileBlaas() {
               </p>
               {/* Stop microfoon knop */}
               <button
-                onClick={toggleMic}
+                onClick={() => { stopListening(); setMicReady(false); }}
                 style={{
                   marginTop: 4,
                   background: "transparent",
