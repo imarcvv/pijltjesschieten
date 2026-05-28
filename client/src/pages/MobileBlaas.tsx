@@ -77,12 +77,12 @@ function PvcTubeButton({ onClick, label }: { onClick?: () => void; label: string
         cursor: onClick ? "pointer" : "default",
         WebkitTapHighlightColor: "transparent",
         userSelect: "none",
-        // PVC yellow colour
-        background: "#f5d000",
-        boxShadow: "0 4px 16px rgba(180,140,0,0.40), 0 1px 0 rgba(255,255,200,0.6) inset",
+        // PVC cream/beige colour (from reference)
+        background: "#fdf3e3",
+        boxShadow: "0 4px 16px rgba(180,140,80,0.30), 0 1px 0 rgba(255,255,240,0.8) inset",
         transition: "transform 0.15s ease-out, box-shadow 0.15s ease-out",
         outline: "none",
-        color: "#5a3e00",
+        color: "#7a5a1a",
         fontSize: 17,
         fontWeight: 800,
         fontFamily: "'Special Elite', 'Courier New', Courier, monospace",
@@ -90,9 +90,9 @@ function PvcTubeButton({ onClick, label }: { onClick?: () => void; label: string
         textShadow: "0 1px 0 rgba(255,255,200,0.7)",
         padding: "0 32px",
       }}
-      onPointerDown={e => { e.currentTarget.style.transform = "scale(0.96)"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(180,140,0,0.30)"; }}
-      onPointerUp={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(180,140,0,0.40), 0 1px 0 rgba(255,255,200,0.6) inset"; }}
-      onPointerLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(180,140,0,0.40), 0 1px 0 rgba(255,255,200,0.6) inset"; }}
+      onPointerDown={e => { e.currentTarget.style.transform = "scale(0.96)"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(180,140,80,0.25)"; }}
+      onPointerUp={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(180,140,80,0.30), 0 1px 0 rgba(255,255,240,0.8) inset"; }}
+      onPointerLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(180,140,80,0.30), 0 1px 0 rgba(255,255,240,0.8) inset"; }}
     >
       {label}
     </button>
