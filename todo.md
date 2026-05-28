@@ -117,3 +117,10 @@
 - [x] Pass quote from Home.tsx shootDart mutation call
 - [x] embed.js: parse quoteText/quoteAuthor from SSE payload, pass to fireDart
 - [x] embed.js: showPopup handles quote mode (blue header, quote text, author, no sponsor branding)
+
+## Mobiele weergave
+- [x] MobileBlaas.tsx pagina aangemaakt: witte achtergrond, pijltje 90° gedraaid (omhoog), "Blaas nu!" knop
+- [x] Pijltje schiet omhoog uit beeld bij blazen (CSS transform animatie)
+- [x] Nieuw pijltje schuift van onderen in na de schietanimatie
+- [x] Microfoon-detectie werkt ook op mobiel (tap activeert mic + schiet direct)
+- [x] Mobiele detectie in App.tsx: ≤768px + touchscreen → MobileBlaas, anders → Home

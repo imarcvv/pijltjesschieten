@@ -7,11 +7,19 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Admin from "./pages/Admin";
 import Demo from "./pages/Demo";
+import MobileBlaas from "./pages/MobileBlaas";
+
+/** Show the minimal mobile shoot view on small touch screens */
+function useMobile() {
+  if (typeof window === "undefined") return false;
+  return window.innerWidth <= 768 && "ontouchstart" in window;
+}
 
 function Router() {
+  const isMobile = useMobile();
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      <Route path="/" component={isMobile ? MobileBlaas : Home} />
       <Route path="/admin" component={Admin} />
       <Route path="/demo" component={Demo} />
       <Route path="/404" component={NotFound} />
