@@ -298,13 +298,15 @@ export default function MobileBlaas() {
                   width: 32,
                   height: 32,
                   borderRadius: "50%",
-                  background: "#ff6a00",
-                  color: "#fff",
+                  background: "#fdf3e3",
+                  color: "#7a5a1a",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontWeight: 700,
+                  fontWeight: 800,
                   fontSize: 15,
+                  fontFamily: "'Special Elite', 'Courier New', Courier, monospace",
+                  boxShadow: "0 2px 6px rgba(180,140,80,0.25)",
                 }}
               >
                 {step.n}
