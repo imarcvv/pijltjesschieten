@@ -67,6 +67,8 @@ export default function MobileBlaas() {
   const [animState, setAnimState] = useState<AnimState>("idle");
   const [variant, setVariant] = useState<0 | 1 | 2>(() => (Math.floor(Math.random() * 3)) as 0 | 1 | 2);
   const [showMsg, setShowMsg] = useState(false);
+  // micReady: false = mic not yet activated, true = mic active and ready to blow
+  const [micReady, setMicReady] = useState(false);
   const dartImg = DART_IMAGES[variant];
   const utils = trpc.useUtils();
 
@@ -123,10 +125,16 @@ export default function MobileBlaas() {
     else startListening();
   }, [isListening, startListening, stopListening]);
 
+  // First tap: activate mic and mark as ready
+  const handleFirstTap = useCallback(() => {
+    setMicReady(true);
+    startListening();
+  }, [startListening]);
+
   const dartStyle: React.CSSProperties = useMemo(() => {
     const base: React.CSSProperties = {
       transform: "rotate(-90deg)",
-      width: "min(70vw, 320px)",
+      width: "min(105vw, 480px)",
       height: "auto",
       objectFit: "contain",
       userSelect: "none",
@@ -179,36 +187,62 @@ export default function MobileBlaas() {
             gap: 12,
           }}
         >
-          <button
-            onClick={() => {
-              toggleMic();
-              if (!isListening) setTimeout(() => shoot(0.6), 80);
-            }}
-            style={{
-              background: isListening ? "#e05a00" : "#ff6a00",
-              color: "#fff",
-              border: "none",
-              borderRadius: 16,
-              fontSize: 22,
-              fontWeight: 700,
-              letterSpacing: 1,
-              padding: "18px 56px",
-              cursor: "pointer",
-              boxShadow: "0 4px 24px rgba(255,106,0,0.35)",
-              transform: "scale(1)",
-              transition: "transform 0.15s ease-out, background 0.2s",
-              WebkitTapHighlightColor: "transparent",
-              userSelect: "none",
-            }}
-            onPointerDown={e => (e.currentTarget.style.transform = "scale(0.96)")}
-            onPointerUp={e => (e.currentTarget.style.transform = "scale(1)")}
-            onPointerLeave={e => (e.currentTarget.style.transform = "scale(1)")}
-          >
-            {isListening ? "🎤 Blaas!" : "🎯 Blaas nu!"}
-          </button>
-          {isListening && (
+          {!micReady ? (
+            /* Step 1: mic not yet activated */
+            <button
+              onClick={handleFirstTap}
+              style={{
+                background: "#ff6a00",
+                color: "#fff",
+                border: "none",
+                borderRadius: 16,
+                fontSize: 22,
+                fontWeight: 700,
+                letterSpacing: 1,
+                padding: "18px 48px",
+                cursor: "pointer",
+                boxShadow: "0 4px 24px rgba(255,106,0,0.35)",
+                transform: "scale(1)",
+                transition: "transform 0.15s ease-out",
+                WebkitTapHighlightColor: "transparent",
+                userSelect: "none",
+              }}
+              onPointerDown={e => (e.currentTarget.style.transform = "scale(0.96)")}
+              onPointerUp={e => (e.currentTarget.style.transform = "scale(1)")}
+              onPointerLeave={e => (e.currentTarget.style.transform = "scale(1)")}
+            >
+              🎯 Klik hier om te schieten
+            </button>
+          ) : (
+            /* Step 2: mic active — tap also fires dart as fallback */
+            <button
+              onClick={() => { /* blow to shoot — tap disabled */ }}
+              style={{
+                background: animState === "shooting" ? "#e05a00" : "#ff6a00",
+                color: "#fff",
+                border: "none",
+                borderRadius: 16,
+                fontSize: 22,
+                fontWeight: 700,
+                letterSpacing: 1,
+                padding: "18px 56px",
+                cursor: "pointer",
+                boxShadow: "0 4px 24px rgba(255,106,0,0.35)",
+                transform: "scale(1)",
+                transition: "transform 0.15s ease-out, background 0.2s",
+                WebkitTapHighlightColor: "transparent",
+                userSelect: "none",
+              }}
+              onPointerDown={e => (e.currentTarget.style.transform = "scale(0.96)")}
+              onPointerUp={e => (e.currentTarget.style.transform = "scale(1)")}
+              onPointerLeave={e => (e.currentTarget.style.transform = "scale(1)")}
+            >
+              🎤 Blaas nu in de microfoon
+            </button>
+          )}
+          {micReady && (
             <p style={{ margin: 0, fontSize: 13, color: "#999", fontFamily: "sans-serif" }}>
-              Blaas hard in je microfoon…
+              Blaas hard in je microfoon of tik de knop
             </p>
           )}
 
