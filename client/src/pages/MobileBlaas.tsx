@@ -24,7 +24,7 @@ const QUOTES: { text: string; author: string }[] = [
 ];
 
 const STEPS = [
-  { n: 1, text: "Klik op de oranje knop om de microfoon te activeren" },
+  { n: 1, text: "Klik op de startknop om de microfoon te activeren" },
   { n: 2, text: "Blaas hard in je microfoon (niet te zacht!)" },
   { n: 3, text: "Kijk hoe je pijltje over het scherm vliegt! 🎯" },
   { n: 4, text: "Ergens in Nederland vliegt jouw pijltje over een scherm." },
@@ -171,24 +171,25 @@ export default function MobileBlaas() {
 
   // Device orientation: tilt dart left/right based on phone gamma
   const [tiltDeg, setTiltDeg] = useState(0);
-  useEffect(() => {
+
+  const startOrientationTracking = useCallback(() => {
     const handler = (e: DeviceOrientationEvent) => {
       if (e.gamma == null) return;
-      // gamma: -90 (left) to +90 (right), clamp to ±25° for subtle effect
       const clamped = Math.max(-25, Math.min(25, e.gamma));
-      setTiltDeg(clamped * 0.5); // scale down to ±12.5° visual tilt
+      setTiltDeg(clamped * 0.5);
     };
-    // iOS 13+ requires permission
-    if (typeof (DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> }).requestPermission === "function") {
-      (DeviceOrientationEvent as unknown as { requestPermission: () => Promise<string> })
-        .requestPermission()
-        .then(res => { if (res === "granted") window.addEventListener("deviceorientation", handler); })
-        .catch(() => {});
-    } else {
-      window.addEventListener("deviceorientation", handler);
-    }
-    return () => window.removeEventListener("deviceorientation", handler);
+    window.addEventListener("deviceorientation", handler);
+    return handler;
   }, []);
+
+  useEffect(() => {
+    // On non-iOS devices, start immediately
+    if (typeof (DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> }).requestPermission !== "function") {
+      const handler = startOrientationTracking();
+      return () => window.removeEventListener("deviceorientation", handler);
+    }
+    // iOS: permission must be requested from a user gesture — handled in handleFirstTap
+  }, [startOrientationTracking]);
 
   const dartStyle: React.CSSProperties = useMemo(() => {
     const base: React.CSSProperties = {
