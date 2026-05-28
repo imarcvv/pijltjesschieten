@@ -283,10 +283,10 @@ export default function MobileBlaas() {
           padding: "40px 28px 60px",
           maxWidth: 480,
           margin: "0 auto",
-          fontFamily: "sans-serif",
+          fontFamily: "'Special Elite', 'Courier New', Courier, monospace",
         }}
       >
-        <h2 style={{ fontSize: 18, fontWeight: 700, color: "#333", marginBottom: 24, textAlign: "center" }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: "#1a1a1a", marginBottom: 24, textAlign: "center", fontFamily: "'Special Elite', 'Courier New', Courier, monospace" }}>
           ❓ Hoe werkt het?
         </h2>
         <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 20 }}>
