@@ -61,87 +61,40 @@ function playWhoosh() {
   } catch { /* audio not available */ }
 }
 
-// ── PVC Tube Button ────────────────────────────────────────────────────────
-function PvcTubeButton({ onClick, label, active }: { onClick?: () => void; label: string; active: boolean }) {
+// ── PVC Yellow Button (simple rounded) ───────────────────────────────────────
+function PvcTubeButton({ onClick, label }: { onClick?: () => void; label: string; active: boolean }) {
   return (
     <button
       onClick={onClick}
       style={{
-        // Tube shape: wide and rounded like a pipe cross-section
-        position: "relative",
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
         width: "min(80vw, 340px)",
-        height: 72,
+        height: 64,
         border: "none",
-        borderRadius: 36,
+        borderRadius: 32,
         cursor: onClick ? "pointer" : "default",
         WebkitTapHighlightColor: "transparent",
         userSelect: "none",
-        // Yellow PVC colour with cylindrical 3-D gradient
-        background: active
-          ? "linear-gradient(180deg, #ffe066 0%, #e6c200 18%, #c9a800 50%, #b89200 82%, #a07800 100%)"
-          : "linear-gradient(180deg, #ffe580 0%, #f5d000 18%, #d4b000 50%, #b89200 82%, #8c6e00 100%)",
-        // Raised pipe shadow
-        boxShadow: active
-          ? "0 2px 8px rgba(0,0,0,0.35), inset 0 3px 6px rgba(255,255,200,0.45), inset 0 -3px 6px rgba(0,0,0,0.25)"
-          : "0 6px 18px rgba(0,0,0,0.30), inset 0 4px 8px rgba(255,255,200,0.50), inset 0 -4px 8px rgba(0,0,0,0.20)",
+        // PVC yellow colour
+        background: "#f5d000",
+        boxShadow: "0 4px 16px rgba(180,140,0,0.40), 0 1px 0 rgba(255,255,200,0.6) inset",
         transition: "transform 0.15s ease-out, box-shadow 0.15s ease-out",
         outline: "none",
-        // Embossed text look via text-shadow
         color: "#5a3e00",
         fontSize: 17,
         fontWeight: 800,
         fontFamily: "'Special Elite', 'Courier New', Courier, monospace",
         letterSpacing: 1.5,
-        textShadow: "0 1px 0 rgba(255,255,180,0.6), 0 -1px 0 rgba(0,0,0,0.25)",
-        // Open-end ellipse on the right via pseudo — we fake it with a box overlay
-        overflow: "hidden",
+        textShadow: "0 1px 0 rgba(255,255,200,0.7)",
+        padding: "0 32px",
       }}
-      onPointerDown={e => {
-        e.currentTarget.style.transform = "scale(0.96)";
-        e.currentTarget.style.boxShadow = "0 2px 6px rgba(0,0,0,0.3), inset 0 3px 6px rgba(255,255,200,0.4), inset 0 -3px 6px rgba(0,0,0,0.2)";
-      }}
-      onPointerUp={e => {
-        e.currentTarget.style.transform = "scale(1)";
-        e.currentTarget.style.boxShadow = active
-          ? "0 2px 8px rgba(0,0,0,0.35), inset 0 3px 6px rgba(255,255,200,0.45), inset 0 -3px 6px rgba(0,0,0,0.25)"
-          : "0 6px 18px rgba(0,0,0,0.30), inset 0 4px 8px rgba(255,255,200,0.50), inset 0 -4px 8px rgba(0,0,0,0.20)";
-      }}
-      onPointerLeave={e => {
-        e.currentTarget.style.transform = "scale(1)";
-        e.currentTarget.style.boxShadow = active
-          ? "0 2px 8px rgba(0,0,0,0.35), inset 0 3px 6px rgba(255,255,200,0.45), inset 0 -3px 6px rgba(0,0,0,0.25)"
-          : "0 6px 18px rgba(0,0,0,0.30), inset 0 4px 8px rgba(255,255,200,0.50), inset 0 -4px 8px rgba(0,0,0,0.20)";
-      }}
+      onPointerDown={e => { e.currentTarget.style.transform = "scale(0.96)"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(180,140,0,0.30)"; }}
+      onPointerUp={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(180,140,0,0.40), 0 1px 0 rgba(255,255,200,0.6) inset"; }}
+      onPointerLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(180,140,0,0.40), 0 1px 0 rgba(255,255,200,0.6) inset"; }}
     >
-      {/* Left open-end ellipse */}
-      <span style={{
-        position: "absolute",
-        left: -1,
-        top: "50%",
-        transform: "translateY(-50%)",
-        width: 28,
-        height: 72,
-        background: "radial-gradient(ellipse 14px 34px at 14px 50%, #7a5800 60%, transparent 100%)",
-        borderRadius: "50% 0 0 50% / 50% 0 0 50%",
-        pointerEvents: "none",
-      }} />
-      {/* Right open-end ellipse */}
-      <span style={{
-        position: "absolute",
-        right: -1,
-        top: "50%",
-        transform: "translateY(-50%)",
-        width: 28,
-        height: 72,
-        background: "radial-gradient(ellipse 14px 34px at 14px 50%, #7a5800 60%, transparent 100%)",
-        borderRadius: "0 50% 50% 0 / 0 50% 50% 0",
-        pointerEvents: "none",
-      }} />
-      {/* Label */}
-      <span style={{ position: "relative", zIndex: 1, paddingLeft: 20, paddingRight: 20 }}>{label}</span>
+      {label}
     </button>
   );
 }
@@ -181,9 +134,9 @@ export default function MobileBlaas() {
     // Haptic feedback: short sharp buzz on shoot
     if (navigator.vibrate) navigator.vibrate([60, 20, 40]);
 
-    // Show "Pijltje onderweg!" toast
-    setShowMsg(true);
-    setTimeout(() => setShowMsg(false), 2000);
+    // "Pijltje onderweg!" toast — tijdelijk uitgeschakeld
+    // setShowMsg(true);
+    // setTimeout(() => setShowMsg(false), 2000);
 
     fireDartMutation.mutate({
       sponsorId: (sponsor as { id: number } | null)?.id ?? undefined,
