@@ -232,9 +232,33 @@ export default function MobileBlaas() {
             active={micReady}
           />
           {micReady && (
-            <p style={{ margin: 0, fontSize: 13, color: "#999", fontFamily: "sans-serif" }}>
-              Blaas hard in je microfoon…
-            </p>
+            <>
+              <p style={{ margin: 0, fontSize: 13, color: "#999", fontFamily: "'Special Elite', 'Courier New', Courier, monospace" }}>
+                Blaas hard in je microfoon…
+              </p>
+              {/* Stop microfoon knop */}
+              <button
+                onClick={toggleMic}
+                style={{
+                  marginTop: 4,
+                  background: "transparent",
+                  border: "1.5px solid #ccc",
+                  borderRadius: 20,
+                  padding: "6px 20px",
+                  fontSize: 13,
+                  color: "#888",
+                  fontFamily: "'Special Elite', 'Courier New', Courier, monospace",
+                  cursor: "pointer",
+                  WebkitTapHighlightColor: "transparent",
+                  transition: "border-color 0.15s, color 0.15s",
+                }}
+                onPointerDown={e => { e.currentTarget.style.borderColor = "#999"; e.currentTarget.style.color = "#555"; }}
+                onPointerUp={e => { e.currentTarget.style.borderColor = "#ccc"; e.currentTarget.style.color = "#888"; }}
+                onPointerLeave={e => { e.currentTarget.style.borderColor = "#ccc"; e.currentTarget.style.color = "#888"; }}
+              >
+                🔴 Stop microfoon
+              </button>
+            </>
           )}
 
           {/* Scroll hint arrow */}
