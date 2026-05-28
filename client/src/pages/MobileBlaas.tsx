@@ -61,6 +61,91 @@ function playWhoosh() {
   } catch { /* audio not available */ }
 }
 
+// ── PVC Tube Button ────────────────────────────────────────────────────────
+function PvcTubeButton({ onClick, label, active }: { onClick?: () => void; label: string; active: boolean }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        // Tube shape: wide and rounded like a pipe cross-section
+        position: "relative",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "min(80vw, 340px)",
+        height: 72,
+        border: "none",
+        borderRadius: 36,
+        cursor: onClick ? "pointer" : "default",
+        WebkitTapHighlightColor: "transparent",
+        userSelect: "none",
+        // Yellow PVC colour with cylindrical 3-D gradient
+        background: active
+          ? "linear-gradient(180deg, #ffe066 0%, #e6c200 18%, #c9a800 50%, #b89200 82%, #a07800 100%)"
+          : "linear-gradient(180deg, #ffe580 0%, #f5d000 18%, #d4b000 50%, #b89200 82%, #8c6e00 100%)",
+        // Raised pipe shadow
+        boxShadow: active
+          ? "0 2px 8px rgba(0,0,0,0.35), inset 0 3px 6px rgba(255,255,200,0.45), inset 0 -3px 6px rgba(0,0,0,0.25)"
+          : "0 6px 18px rgba(0,0,0,0.30), inset 0 4px 8px rgba(255,255,200,0.50), inset 0 -4px 8px rgba(0,0,0,0.20)",
+        transition: "transform 0.15s ease-out, box-shadow 0.15s ease-out",
+        outline: "none",
+        // Embossed text look via text-shadow
+        color: "#5a3e00",
+        fontSize: 17,
+        fontWeight: 800,
+        fontFamily: "'Special Elite', 'Courier New', Courier, monospace",
+        letterSpacing: 1.5,
+        textShadow: "0 1px 0 rgba(255,255,180,0.6), 0 -1px 0 rgba(0,0,0,0.25)",
+        // Open-end ellipse on the right via pseudo — we fake it with a box overlay
+        overflow: "hidden",
+      }}
+      onPointerDown={e => {
+        e.currentTarget.style.transform = "scale(0.96)";
+        e.currentTarget.style.boxShadow = "0 2px 6px rgba(0,0,0,0.3), inset 0 3px 6px rgba(255,255,200,0.4), inset 0 -3px 6px rgba(0,0,0,0.2)";
+      }}
+      onPointerUp={e => {
+        e.currentTarget.style.transform = "scale(1)";
+        e.currentTarget.style.boxShadow = active
+          ? "0 2px 8px rgba(0,0,0,0.35), inset 0 3px 6px rgba(255,255,200,0.45), inset 0 -3px 6px rgba(0,0,0,0.25)"
+          : "0 6px 18px rgba(0,0,0,0.30), inset 0 4px 8px rgba(255,255,200,0.50), inset 0 -4px 8px rgba(0,0,0,0.20)";
+      }}
+      onPointerLeave={e => {
+        e.currentTarget.style.transform = "scale(1)";
+        e.currentTarget.style.boxShadow = active
+          ? "0 2px 8px rgba(0,0,0,0.35), inset 0 3px 6px rgba(255,255,200,0.45), inset 0 -3px 6px rgba(0,0,0,0.25)"
+          : "0 6px 18px rgba(0,0,0,0.30), inset 0 4px 8px rgba(255,255,200,0.50), inset 0 -4px 8px rgba(0,0,0,0.20)";
+      }}
+    >
+      {/* Left open-end ellipse */}
+      <span style={{
+        position: "absolute",
+        left: -1,
+        top: "50%",
+        transform: "translateY(-50%)",
+        width: 28,
+        height: 72,
+        background: "radial-gradient(ellipse 14px 34px at 14px 50%, #7a5800 60%, transparent 100%)",
+        borderRadius: "50% 0 0 50% / 50% 0 0 50%",
+        pointerEvents: "none",
+      }} />
+      {/* Right open-end ellipse */}
+      <span style={{
+        position: "absolute",
+        right: -1,
+        top: "50%",
+        transform: "translateY(-50%)",
+        width: 28,
+        height: 72,
+        background: "radial-gradient(ellipse 14px 34px at 14px 50%, #7a5800 60%, transparent 100%)",
+        borderRadius: "0 50% 50% 0 / 0 50% 50% 0",
+        pointerEvents: "none",
+      }} />
+      {/* Label */}
+      <span style={{ position: "relative", zIndex: 1, paddingLeft: 20, paddingRight: 20 }}>{label}</span>
+    </button>
+  );
+}
+
 type AnimState = "idle" | "shooting" | "reloading";
 
 export default function MobileBlaas() {
@@ -187,62 +272,15 @@ export default function MobileBlaas() {
             gap: 12,
           }}
         >
-          {!micReady ? (
-            /* Step 1: mic not yet activated */
-            <button
-              onClick={handleFirstTap}
-              style={{
-                background: "#ff6a00",
-                color: "#fff",
-                border: "none",
-                borderRadius: 16,
-                fontSize: 22,
-                fontWeight: 700,
-                letterSpacing: 1,
-                padding: "18px 48px",
-                cursor: "pointer",
-                boxShadow: "0 4px 24px rgba(255,106,0,0.35)",
-                transform: "scale(1)",
-                transition: "transform 0.15s ease-out",
-                WebkitTapHighlightColor: "transparent",
-                userSelect: "none",
-              }}
-              onPointerDown={e => (e.currentTarget.style.transform = "scale(0.96)")}
-              onPointerUp={e => (e.currentTarget.style.transform = "scale(1)")}
-              onPointerLeave={e => (e.currentTarget.style.transform = "scale(1)")}
-            >
-              🎯 Klik hier om te schieten
-            </button>
-          ) : (
-            /* Step 2: mic active — tap also fires dart as fallback */
-            <button
-              onClick={() => { /* blow to shoot — tap disabled */ }}
-              style={{
-                background: animState === "shooting" ? "#e05a00" : "#ff6a00",
-                color: "#fff",
-                border: "none",
-                borderRadius: 16,
-                fontSize: 22,
-                fontWeight: 700,
-                letterSpacing: 1,
-                padding: "18px 56px",
-                cursor: "pointer",
-                boxShadow: "0 4px 24px rgba(255,106,0,0.35)",
-                transform: "scale(1)",
-                transition: "transform 0.15s ease-out, background 0.2s",
-                WebkitTapHighlightColor: "transparent",
-                userSelect: "none",
-              }}
-              onPointerDown={e => (e.currentTarget.style.transform = "scale(0.96)")}
-              onPointerUp={e => (e.currentTarget.style.transform = "scale(1)")}
-              onPointerLeave={e => (e.currentTarget.style.transform = "scale(1)")}
-            >
-              🎤 Blaas nu in de microfoon
-            </button>
-          )}
+          {/* PVC-buis knop */}
+          <PvcTubeButton
+            onClick={!micReady ? handleFirstTap : undefined}
+            label={!micReady ? "🎯 Klik hier om te schieten" : "🎤 Blaas nu in de microfoon"}
+            active={micReady}
+          />
           {micReady && (
             <p style={{ margin: 0, fontSize: 13, color: "#999", fontFamily: "sans-serif" }}>
-              Blaas hard in je microfoon of tik de knop
+              Blaas hard in je microfoon…
             </p>
           )}
 
