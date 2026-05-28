@@ -225,6 +225,24 @@ export default function MobileBlaas() {
             gap: 12,
           }}
         >
+          {/* Soundwave indicator — visible when mic is active */}
+          {micReady && (
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: 28, marginBottom: 4 }}>
+              {[1, 2, 3, 4, 5].map(i => (
+                <span
+                  key={i}
+                  style={{
+                    display: "inline-block",
+                    width: 5,
+                    borderRadius: 3,
+                    background: "#f5d000",
+                    animation: `mbl-bar${i} ${0.5 + i * 0.07}s ease-in-out infinite alternate`,
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
           {/* PVC-buis knop */}
           <PvcTubeButton
             onClick={!micReady ? handleFirstTap : undefined}
@@ -349,6 +367,11 @@ export default function MobileBlaas() {
           0%, 100% { transform: translateY(0); opacity: 0.5; }
           50%       { transform: translateY(6px); opacity: 1; }
         }
+        @keyframes mbl-bar1 { from { height: 6px; }  to { height: 22px; } }
+        @keyframes mbl-bar2 { from { height: 10px; } to { height: 26px; } }
+        @keyframes mbl-bar3 { from { height: 14px; } to { height: 28px; } }
+        @keyframes mbl-bar4 { from { height: 8px; }  to { height: 20px; } }
+        @keyframes mbl-bar5 { from { height: 5px; }  to { height: 18px; } }
       `}</style>
     </div>
   );
