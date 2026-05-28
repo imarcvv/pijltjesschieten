@@ -82,7 +82,7 @@ function PvcTubeButton({ onClick, label }: { onClick?: () => void; label: string
         boxShadow: "0 4px 16px rgba(180,140,80,0.30), 0 1px 0 rgba(255,255,240,0.8) inset",
         transition: "transform 0.15s ease-out, box-shadow 0.15s ease-out",
         outline: "none",
-        color: "#7a5a1a",
+        color: "#1a1a1a",
         fontSize: 17,
         fontWeight: 800,
         fontFamily: "'Special Elite', 'Courier New', Courier, monospace",
@@ -228,7 +228,7 @@ export default function MobileBlaas() {
           {/* PVC-buis knop */}
           <PvcTubeButton
             onClick={!micReady ? handleFirstTap : undefined}
-            label={!micReady ? "🎯 Klik hier om te schieten" : "🎤 Blaas nu in de microfoon"}
+            label={!micReady ? "🎯 Klik hier om te starten" : "🎤 Blaas nu in de microfoon"}
             active={micReady}
           />
           {micReady && (
@@ -299,7 +299,7 @@ export default function MobileBlaas() {
                   height: 32,
                   borderRadius: "50%",
                   background: "#fdf3e3",
-                  color: "#7a5a1a",
+                  color: "#1a1a1a",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -311,7 +311,7 @@ export default function MobileBlaas() {
               >
                 {step.n}
               </span>
-              <p style={{ margin: 0, fontSize: 15, color: "#444", lineHeight: 1.5, paddingTop: 5 }}>
+              <p style={{ margin: 0, fontSize: 15, color: "#1a1a1a", lineHeight: 1.5, paddingTop: 5, fontFamily: "'Special Elite', 'Courier New', Courier, monospace" }}>
                 {step.text}
               </p>
             </li>
