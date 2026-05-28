@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useBlowDetection } from "@/hooks/useBlowDetection";
 
@@ -169,9 +169,30 @@ export default function MobileBlaas() {
     startListening();
   }, [startListening]);
 
+  // Device orientation: tilt dart left/right based on phone gamma
+  const [tiltDeg, setTiltDeg] = useState(0);
+  useEffect(() => {
+    const handler = (e: DeviceOrientationEvent) => {
+      if (e.gamma == null) return;
+      // gamma: -90 (left) to +90 (right), clamp to ±25° for subtle effect
+      const clamped = Math.max(-25, Math.min(25, e.gamma));
+      setTiltDeg(clamped * 0.5); // scale down to ±12.5° visual tilt
+    };
+    // iOS 13+ requires permission
+    if (typeof (DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> }).requestPermission === "function") {
+      (DeviceOrientationEvent as unknown as { requestPermission: () => Promise<string> })
+        .requestPermission()
+        .then(res => { if (res === "granted") window.addEventListener("deviceorientation", handler); })
+        .catch(() => {});
+    } else {
+      window.addEventListener("deviceorientation", handler);
+    }
+    return () => window.removeEventListener("deviceorientation", handler);
+  }, []);
+
   const dartStyle: React.CSSProperties = useMemo(() => {
     const base: React.CSSProperties = {
-      transform: "rotate(-90deg)",
+      transform: `rotate(${-90 + tiltDeg}deg)`,
       width: "min(105vw, 480px)",
       height: "auto",
       objectFit: "contain",
@@ -184,13 +205,13 @@ export default function MobileBlaas() {
         : "transform 0.4s cubic-bezier(0.23,1,0.32,1), opacity 0.4s ease-out",
     };
     if (animState === "shooting") {
-      return { ...base, transform: "rotate(-90deg) translateX(110vw)", opacity: 0 };
+      return { ...base, transform: `rotate(${-90 + tiltDeg}deg) translateX(110vw)`, opacity: 0 };
     }
     if (animState === "reloading") {
-      return { ...base, transform: "rotate(-90deg) translateX(-110vw)", opacity: 0, transition: "none" };
+      return { ...base, transform: `rotate(${-90 + tiltDeg}deg) translateX(-110vw)`, opacity: 0, transition: "none" };
     }
     return base;
-  }, [animState]);
+  }, [animState, tiltDeg]);
 
   return (
     /* Outer scroll container — full viewport, scrollable */
