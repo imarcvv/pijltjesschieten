@@ -91,6 +91,8 @@ export default function MobileBlaas() {
 
     setAnimState("shooting");
     playWhoosh();
+    // Haptic feedback: short sharp buzz on shoot
+    if (navigator.vibrate) navigator.vibrate([60, 20, 40]);
 
     // Show "Pijltje onderweg!" toast
     setShowMsg(true);
