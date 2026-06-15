@@ -1,6 +1,6 @@
 import { eq, desc, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, sponsors, darts, InsertSponsor, InsertDart, Sponsor, Dart } from "../drizzle/schema";
+import { InsertUser, users, sponsors, darts, InsertSponsor, InsertDart, Sponsor, Dart, siteSettings } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -126,6 +126,26 @@ export async function getDartById(id: number): Promise<(Dart & { sponsor: Sponso
     .limit(1);
   if (!rows[0]) return undefined;
   return { ...rows[0].darts, sponsor: rows[0].sponsors ?? null };
+}
+
+// ── Site Settings ────────────────────────────────────────────────────────────
+
+export async function getSiteSetting(key: string): Promise<string | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(siteSettings).where(eq(siteSettings.key, key)).limit(1);
+  return result[0]?.value ?? null;
+}
+
+export async function setSiteSetting(key: string, value: string): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(siteSettings).values({ key, value }).onDuplicateKeyUpdate({ set: { value } });
+}
+
+export async function isSiteActive(): Promise<boolean> {
+  const val = await getSiteSetting('site_active');
+  return val !== 'false'; // default to true if not set
 }
 
 export async function getDartStats(): Promise<{ total: number; today: number; golden: number }> {

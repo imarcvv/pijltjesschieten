@@ -124,3 +124,13 @@
 - [x] Nieuw pijltje schuift van onderen in na de schietanimatie
 - [x] Microfoon-detectie werkt ook op mobiel (tap activeert mic + schiet direct)
 - [x] Mobiele detectie in App.tsx: ≤768px + touchscreen → MobileBlaas, anders → Home
+
+## Site Aan/Uit Schakelaar
+- [ ] Voeg `site_settings` tabel toe aan schema met `key` en `value` kolommen
+- [ ] Voeg `getSiteSetting` / `setSiteSetting` helpers toe aan server/db.ts
+- [ ] Voeg `admin.getSiteActive` en `admin.setSiteActive` procedures toe aan routers.ts
+- [ ] Toon aan/uit toggle in admin-panel (AdminPage.tsx)
+- [ ] Gate `fireDart` mutatie: geef foutmelding als site inactief is
+- [ ] Gate SSE `/api/stream` endpoint: stuur geen events als site inactief is
+- [ ] Toon onderhoudspagina op hoofdsite als site inactief is
+- [ ] embed.js: toon geen pijltjes als SSE meldt dat site inactief is

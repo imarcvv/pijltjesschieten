@@ -94,6 +94,16 @@ export default function Admin() {
   const { data: stats } = trpc.darts.stats.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === "admin",
   });
+  const { data: siteStatus, refetch: refetchSiteStatus } = trpc.site.isActive.useQuery(undefined, {
+    enabled: isAuthenticated && user?.role === "admin",
+  });
+  const setActiveMutation = trpc.site.setActive.useMutation({
+    onSuccess: (data) => {
+      refetchSiteStatus();
+      toast.success(data.active ? "✅ Site is nu ACTIEF" : "⏸️ Site is nu UITGESCHAKELD");
+    },
+    onError: (e) => toast.error(`Fout: ${e.message}`),
+  });
 
   const createMutation = trpc.sponsors.create.useMutation({
     onSuccess: () => { utils.sponsors.listAll.invalidate(); utils.sponsors.listActive.invalidate(); toast.success("Sponsor aangemaakt!"); resetForm(); },
@@ -294,6 +304,42 @@ export default function Admin() {
 
           {/* Left column: Stats + Form + Sponsors list */}
           <div>
+            {/* Site on/off toggle panel */}
+            <Panel>
+              <PanelHeader>⚡ Site Aan/Uit</PanelHeader>
+              <div style={{ padding: 12, display: "flex", alignItems: "center", gap: 16, fontFamily: RETRO_FONT }}>
+                <div style={{
+                  width: 18, height: 18, borderRadius: "50%",
+                  background: siteStatus?.active ? "#00cc44" : "#cc0000",
+                  border: "2px solid #333", flexShrink: 0,
+                  boxShadow: siteStatus?.active ? "0 0 6px #00cc44" : "0 0 6px #cc0000",
+                }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: "bold", color: siteStatus?.active ? "#006622" : "#990000" }}>
+                    {siteStatus?.active ? "ACTIEF — pijltjes schieten is ingeschakeld" : "UITGESCHAKELD — pijltjes schieten is gepauzeerd"}
+                  </div>
+                  <div style={{ fontSize: 10, color: "#666", marginTop: 2 }}>
+                    {siteStatus?.active
+                      ? "Zet uit om data- en serverkosten te minimaliseren als je de site niet gebruikt."
+                      : "Zet aan om de site te activeren voor een demo of campagne."}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setActiveMutation.mutate({ active: !siteStatus?.active })}
+                  disabled={setActiveMutation.isPending || siteStatus === undefined}
+                  style={{
+                    background: siteStatus?.active ? "#cc0000" : "#006622",
+                    color: "#fff", border: "2px solid #333",
+                    padding: "6px 18px", fontSize: 12, fontWeight: "bold",
+                    cursor: "pointer", fontFamily: RETRO_FONT,
+                    opacity: setActiveMutation.isPending ? 0.6 : 1,
+                  }}
+                >
+                  {setActiveMutation.isPending ? "..." : (siteStatus?.active ? "⏸ Zet UIT" : "▶ Zet AAN")}
+                </button>
+              </div>
+            </Panel>
+
             {/* Stats panel */}
             {stats && (
               <Panel>

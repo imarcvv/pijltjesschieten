@@ -338,6 +338,14 @@
           // Connection acknowledged — no filtering needed
           return;
         }
+        if (payload.type === "site_inactive") {
+          // Site is turned off — stop reconnecting to save bandwidth
+          evtSource.close();
+          evtSource = null;
+          // Retry after 10 minutes in case the site is turned back on
+          setTimeout(connectStream, 10 * 60 * 1000);
+          return;
+        }
         if (payload.type === "dart") {
           // Build sponsor object from broadcast payload
           var sponsor = payload.sponsorName ? {

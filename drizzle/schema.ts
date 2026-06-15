@@ -46,3 +46,11 @@ export const darts = mysqlTable("darts", {
 
 export type Dart = typeof darts.$inferSelect;
 export type InsertDart = typeof darts.$inferInsert;
+
+export const siteSettings = mysqlTable("site_settings", {
+  key: varchar("key", { length: 64 }).primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SiteSetting = typeof siteSettings.$inferSelect;

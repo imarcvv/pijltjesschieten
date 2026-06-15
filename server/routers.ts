@@ -8,6 +8,7 @@ import {
   getActiveSponsors, getAllSponsors, getSponsorById,
   createSponsor, updateSponsor, deleteSponsor,
   fireDart, getRecentDarts, getDartById, getDartStats,
+  isSiteActive, setSiteSetting, getSiteSetting,
 } from "./db";
 import { storagePut } from "./storage";
 import { broadcastDartEvent } from "./_core/embedBroadcast";  // SSE broadcast
@@ -134,6 +135,12 @@ export const appRouter = router({
         }).optional(),
       }))
       .mutation(async ({ input }) => {
+        // Check if site is active
+        const active = await isSiteActive();
+        if (!active) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "De site is momenteel uitgeschakeld." });
+        }
+
         // Fetch sponsor once (needed for golden-dart check AND broadcast)
         const sponsor = input.sponsorId ? await getSponsorById(input.sponsorId) : null;
 
@@ -196,6 +203,22 @@ export const appRouter = router({
     stats: adminProcedure.query(async () => {
       return getDartStats();
     }),
+  }),
+
+  // Site on/off toggle
+  site: router({
+    // Public: check if site is active (used by frontend to show maintenance page)
+    isActive: publicProcedure.query(async () => {
+      return { active: await isSiteActive() };
+    }),
+
+    // Admin: set site active/inactive
+    setActive: adminProcedure
+      .input(z.object({ active: z.boolean() }))
+      .mutation(async ({ input }) => {
+        await setSiteSetting('site_active', input.active ? 'true' : 'false');
+        return { success: true, active: input.active };
+      }),
   }),
 });
 

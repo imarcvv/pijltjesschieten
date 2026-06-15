@@ -10,7 +10,7 @@ import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
-import { getActiveSponsors } from "../db";
+import { getActiveSponsors, isSiteActive } from "../db";
 import { sseClients } from "./embedBroadcast";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -54,7 +54,18 @@ async function startServer() {
   });
 
   // ── SSE stream — embed.js connects here to receive live dart events ────────
-  app.get("/api/embed/stream", (req, res) => {
+  app.get("/api/embed/stream", async (req, res) => {
+    // If site is inactive, send a single 'inactive' event and close
+    const active = await isSiteActive();
+    if (!active) {
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.flushHeaders();
+      res.write(`data: ${JSON.stringify({ type: "site_inactive" })}\n\n`);
+      res.end();
+      return;
+    }
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
