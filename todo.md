@@ -126,11 +126,11 @@
 - [x] Mobiele detectie in App.tsx: ≤768px + touchscreen → MobileBlaas, anders → Home
 
 ## Site Aan/Uit Schakelaar
-- [ ] Voeg `site_settings` tabel toe aan schema met `key` en `value` kolommen
-- [ ] Voeg `getSiteSetting` / `setSiteSetting` helpers toe aan server/db.ts
-- [ ] Voeg `admin.getSiteActive` en `admin.setSiteActive` procedures toe aan routers.ts
-- [ ] Toon aan/uit toggle in admin-panel (AdminPage.tsx)
-- [ ] Gate `fireDart` mutatie: geef foutmelding als site inactief is
-- [ ] Gate SSE `/api/stream` endpoint: stuur geen events als site inactief is
-- [ ] Toon onderhoudspagina op hoofdsite als site inactief is
-- [ ] embed.js: toon geen pijltjes als SSE meldt dat site inactief is
+- [x] Voeg `site_settings` tabel toe aan schema met `key` en `value` kolommen
+- [x] Voeg `getSiteSetting` / `setSiteSetting` helpers toe aan server/db.ts
+- [x] Voeg `admin.getSiteActive` en `admin.setSiteActive` procedures toe aan routers.ts
+- [x] Toon aan/uit toggle in admin-panel (AdminPage.tsx)
+- [x] Gate `fireDart` mutatie: geef foutmelding als site inactief is
+- [x] Gate SSE `/api/stream` endpoint: stuur geen events als site inactief is
+- [x] Toon onderhoudspagina op hoofdsite als site inactief is
+- [x] embed.js: toon geen pijltjes als SSE meldt dat site inactief is
