@@ -43,26 +43,32 @@ interface AnimatedDart extends FlyingDart {
   isRTL: boolean;
 }
 
-const FLIGHT_DURATION = 5500; // ms
+const FLIGHT_DURATION = 3200; // ms — sneller dan voorheen (was 5500)
 const REST_DURATION   = 8000; // ms
 
-// 4 straight-line directions
-// sx/sy are fractions of viewport width/height for start position
+// 6 straight-line directions
+// sx/sy are functions returning fractions of viewport width/height for start position
 // The dart images point RIGHT by default.
-// So: flying left→right  → angle 0°   (tip already points right)
-//     flying right→left  → angle 180° (flip via flippedForRTL; PaperDart counter-rotates badge)
-//     diagonal L→R       → slight downward tilt
-//     diagonal R→L       → flip + slight downward tilt
+// So: flying left→right   → angle 0°    (tip already points right)
+//     flying right→left   → angle 180°  (flip via flippedForRTL)
+//     diagonal L→R        → slight downward tilt
+//     diagonal R→L        → flip + slight downward tilt
+//     top → bottom        → angle 90°   (tip points down)
+//     bottom → top        → angle -90°  (tip points up)
 const DIRECTIONS = [
   // Left → Right (tip points right, no flip needed)
-  { sx: -0.05, sy: () => 0.15 + Math.random() * 0.7, dx: 1,  dy: 0,    angle: 0,   rtl: false },
+  { sx: () => -0.05, sy: () => 0.15 + Math.random() * 0.7, dx: 1,  dy: 0,    angle: 0,   rtl: false },
   // Right → Left (flip 180°)
-  { sx: 1.05,  sy: () => 0.15 + Math.random() * 0.7, dx: -1, dy: 0,    angle: 180, rtl: true  },
+  { sx: () => 1.05,  sy: () => 0.15 + Math.random() * 0.7, dx: -1, dy: 0,    angle: 180, rtl: true  },
   // Top-left → Bottom-right (~14° downward tilt)
-  { sx: -0.05, sy: () => Math.random() * 0.3,         dx: 1,  dy: 0.25, angle: 14,  rtl: false },
+  { sx: () => -0.05, sy: () => Math.random() * 0.3,         dx: 1,  dy: 0.25, angle: 14,  rtl: false },
   // Top-right → Bottom-left (flip + tilt)
-  { sx: 1.05,  sy: () => Math.random() * 0.3,         dx: -1, dy: 0.25, angle: 166, rtl: true  },
-] as const;
+  { sx: () => 1.05,  sy: () => Math.random() * 0.3,         dx: -1, dy: 0.25, angle: 166, rtl: true  },
+  // Top → Bottom (tip points down, 90° clockwise)
+  { sx: () => 0.15 + Math.random() * 0.7, sy: () => -0.05, dx: 0,  dy: 1,    angle: 90,  rtl: false },
+  // Bottom → Top (tip points up, 90° counter-clockwise)
+  { sx: () => 0.15 + Math.random() * 0.7, sy: () => 1.05,  dx: 0,  dy: -1,   angle: -90, rtl: false },
+];
 
 export function DartArena({ darts, onDartClick, onDartLanded }: DartArenaProps) {
   const [animatedDarts, setAnimatedDarts] = useState<AnimatedDart[]>([]);
@@ -84,7 +90,7 @@ export function DartArena({ darts, onDartClick, onDartLanded }: DartArenaProps) 
         const vh = window.innerHeight;
 
         const dir = DIRECTIONS[Math.floor(Math.random() * DIRECTIONS.length)];
-        const startX = dir.sx * vw;
+        const startX = dir.sx() * vw;
         const startY = dir.sy() * vh;
         const travelDistance = Math.sqrt(vw * vw + vh * vh) * 1.1;
         // Use caller-provided variant if available, otherwise map from sponsor name
