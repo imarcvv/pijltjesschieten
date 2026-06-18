@@ -259,13 +259,17 @@
       { x0: -0.05, y0: 0.6 + r() * 0.3,  x1: 1.1,  y1: 0.1 + r() * 0.3, rot: -20 },
       // Bottom-right → Top-left (upward diagonal ~200°)
       { x0: 1.05,  y0: 0.6 + r() * 0.3,  x1: -0.1, y1: 0.1 + r() * 0.3, rot: 200 },
+      // Top → Bottom (vertical, random horizontal position)
+      { x0: 0.1 + r() * 0.8, y0: -0.05,  x1: null, y1: 1.1,              rot: 90  },
+      // Bottom → Top (vertical, random horizontal position)
+      { x0: 0.1 + r() * 0.8, y0: 1.05,   x1: null, y1: -0.1,             rot: -90 },
     ];
     var dir = dirs[Math.floor(Math.random() * dirs.length)];
 
     var startX = dir.x0 * vw;
     var startY = dir.y0 * vh;
-    var endX   = dir.x1 * vw;
-    var endY   = (dir.y1 !== null) ? dir.y1 * vh : startY; // horizontal = same Y
+    var endX   = (dir.x1 !== null && dir.x1 !== undefined) ? dir.x1 * vw : startX; // vertical = same X
+    var endY   = (dir.y1 !== null && dir.y1 !== undefined) ? dir.y1 * vh : startY; // horizontal = same Y
 
     // Use the variant sent by the server (same colour as on the main site), or random fallback
     var imgIdx = (dartVariant === 0 || dartVariant === 1 || dartVariant === 2)
