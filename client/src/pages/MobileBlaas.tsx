@@ -145,6 +145,7 @@ export default function MobileBlaas() {
       quoteText: quoteDart?.text ?? undefined,
       quoteAuthor: quoteDart?.author ?? undefined,
       dartVariant: variant,
+      flagText: flagText.trim() || undefined,
       trajectoryData: { startX: 50, startY: 80, angle: -90, speed: 0.5 + power * 0.2, spin: 0 },
     });
 

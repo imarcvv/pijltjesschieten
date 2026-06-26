@@ -214,24 +214,24 @@
   // Called every time a dart slot is freed — drain the queue if possible
   function drainQueue() {
     while (dartQueue.length > 0 && activeDarts < MAX_DARTS) {
-      const next = dartQueue.shift();
-      _launchDart(next.sponsor, next.shooterName, next.quote, next.dartVariant);
+      var next = dartQueue.shift();
+      _launchDart(next.sponsor, next.shooterName, next.quote, next.dartVariant, next.flagText);
     }
   }
 
   // ── Fire a dart (public entry point — queues if busy) ─────────────────────
-  function fireDart(sponsor, shooterName, quote, dartVariant) {
+  function fireDart(sponsor, shooterName, quote, dartVariant, flagText) {
     if (!overlay) return;
     if (activeDarts < MAX_DARTS) {
-      _launchDart(sponsor, shooterName, quote, dartVariant);
+      _launchDart(sponsor, shooterName, quote, dartVariant, flagText);
     } else {
       // Queue the dart so it is shown as soon as a slot opens
-      dartQueue.push({ sponsor: sponsor, shooterName: shooterName, quote: quote, dartVariant: dartVariant });
+      dartQueue.push({ sponsor: sponsor, shooterName: shooterName, quote: quote, dartVariant: dartVariant, flagText: flagText });
     }
   }
 
-  // ── Internal: actually animate a dart across the screen ───────────────────
-  function _launchDart(sponsor, shooterName, quote, dartVariant) {
+  // ── Internal: actually animate a dart across the screen ─────────────────────
+  function _launchDart(sponsor, shooterName, quote, dartVariant, flagText) {
     if (!overlay) return;
 
     const vw = window.innerWidth;
@@ -305,6 +305,58 @@
     });
     wrapper.appendChild(img);
 
+    // Waving flag below/after the dart (if flagText is set)
+    if (flagText && flagText.trim()) {
+      var flagWrap = document.createElement("div");
+      Object.assign(flagWrap.style, {
+        display:        "flex",
+        flexDirection:  "row",
+        alignItems:     "center",
+        position:       "absolute",
+        // Position below the dart image centre
+        top:            (DART_H / 2 + 4) + "px",
+        left:           (DART_W * 0.3) + "px",
+        pointerEvents:  "none",
+        userSelect:     "none",
+      });
+      // Flagpole
+      var pole = document.createElement("div");
+      Object.assign(pole.style, {
+        width: "2px", height: "28px",
+        background: "#888", borderRadius: "1px", flexShrink: "0",
+      });
+      flagWrap.appendChild(pole);
+      // Flag
+      var flag = document.createElement("div");
+      flag.textContent = flagText.trim();
+      Object.assign(flag.style, {
+        background:      "#fdf3e3",
+        border:          "1.5px solid #d4a84b",
+        borderRadius:    "0 5px 5px 0",
+        padding:         "3px 8px 3px 5px",
+        fontSize:        "11px",
+        fontWeight:      "700",
+        fontFamily:      "'Courier New', Courier, monospace",
+        color:           "#1a1a1a",
+        whiteSpace:      "nowrap",
+        maxWidth:        "160px",
+        overflow:        "hidden",
+        textOverflow:    "ellipsis",
+        boxShadow:       "1px 2px 4px rgba(0,0,0,0.12)",
+        transformOrigin: "left center",
+        animation:       "pijltjes-flag-wave 3s ease-in-out infinite",
+      });
+      flagWrap.appendChild(flag);
+      wrapper.appendChild(flagWrap);
+      // Inject keyframes once
+      if (!document.getElementById("pijltjes-flag-style")) {
+        var styleEl = document.createElement("style");
+        styleEl.id = "pijltjes-flag-style";
+        styleEl.textContent = "@keyframes pijltjes-flag-wave { 0%,100%{transform:rotate(0deg) scaleX(1)} 30%{transform:rotate(1.5deg) scaleX(1.02)} 65%{transform:rotate(-1deg) scaleX(0.99)} }";
+        document.head.appendChild(styleEl);
+      }
+    }
+
     wrapper.addEventListener("click", function() { showPopup(sponsor, shooterName, quote); });
     overlay.appendChild(wrapper);
     activeDarts++;
@@ -367,7 +419,8 @@
           // Pass dartVariant so embed uses the same colour as the main site
           var dartVariant = (payload.dartVariant === 0 || payload.dartVariant === 1 || payload.dartVariant === 2)
             ? payload.dartVariant : null;
-          fireDart(sponsor, payload.shooterName || null, quote, dartVariant);
+          var flagText = payload.flagText || null;
+          fireDart(sponsor, payload.shooterName || null, quote, dartVariant, flagText);
         }
       } catch (_) { /* ignore parse errors */ }
     };

@@ -21,6 +21,8 @@ export interface DartBroadcastPayload {
   quoteAuthor:     string | null;
   /** Dart color variant: 0=geel, 1=blauw, 2=wit — must match what was shown on the main site */
   dartVariant:     0 | 1 | 2;
+  /** Optional flag text shown below the dart (max 4 words / 30 chars) */
+  flagText:        string | null;
 }
 
 export function broadcastDartEvent(payload: DartBroadcastPayload): void {

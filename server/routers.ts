@@ -126,6 +126,7 @@ export const appRouter = router({
         quoteText: z.string().max(512).optional(),
         quoteAuthor: z.string().max(128).optional(),
         dartVariant: z.union([z.literal(0), z.literal(1), z.literal(2)]).optional(),
+        flagText: z.string().max(30).optional(),
         trajectoryData: z.object({
           startX: z.number(),
           startY: z.number(),
@@ -174,6 +175,7 @@ export const appRouter = router({
               quoteText:       input.quoteText ?? null,
               quoteAuthor:     input.quoteAuthor ?? null,
               dartVariant:     (input.dartVariant ?? (Math.floor(Math.random() * 3) as 0 | 1 | 2)),
+              flagText:        input.flagText ?? null,
             });
           }),
         ]);
