@@ -278,7 +278,7 @@
     const dartImg  = DART_IMAGES[imgIdx];
     const DART_W   = 220;
     const DART_H   = 38;
-    const DURATION = 5500;
+    const DURATION = 8500;
 
     const wrapper = document.createElement("div");
     Object.assign(wrapper.style, {
@@ -305,25 +305,31 @@
     });
     wrapper.appendChild(img);
 
-    // Waving flag below/after the dart (if flagText is set)
+    // Waving flag — always below the dart and always upright/readable
+    // The wrapper is rotated by dir.rot, so we counter-rotate the flag container
+    // by -dir.rot so the text is never flipped or tilted.
     if (flagText && flagText.trim()) {
+      // flagWrap is positioned relative to the wrapper's local coordinate space.
+      // We place it centred below the dart image, then undo the wrapper rotation.
       var flagWrap = document.createElement("div");
       Object.assign(flagWrap.style, {
-        display:        "flex",
-        flexDirection:  "row",
-        alignItems:     "center",
         position:       "absolute",
-        // Position below the dart image centre
-        top:            (DART_H / 2 + 4) + "px",
-        left:           (DART_W * 0.3) + "px",
+        // Centre horizontally on the dart image, drop below it
+        left:           (DART_W / 2) + "px",
+        top:            (DART_H / 2 + 6) + "px",
+        transform:      "translateX(-50%) rotate(" + (-dir.rot) + "deg)",
+        transformOrigin:"center top",
+        display:        "flex",
+        flexDirection:  "column",
+        alignItems:     "center",
         pointerEvents:  "none",
         userSelect:     "none",
       });
       // Flagpole
       var pole = document.createElement("div");
       Object.assign(pole.style, {
-        width: "2px", height: "28px",
-        background: "#888", borderRadius: "1px", flexShrink: "0",
+        width: "2px", height: "22px",
+        background: "#888", borderRadius: "1px",
       });
       flagWrap.appendChild(pole);
       // Flag
@@ -332,19 +338,19 @@
       Object.assign(flag.style, {
         background:      "#fdf3e3",
         border:          "1.5px solid #d4a84b",
-        borderRadius:    "0 5px 5px 0",
-        padding:         "3px 8px 3px 5px",
-        fontSize:        "11px",
+        borderRadius:    "4px",
+        padding:         "3px 8px",
+        fontSize:        "12px",
         fontWeight:      "700",
         fontFamily:      "'Courier New', Courier, monospace",
         color:           "#1a1a1a",
         whiteSpace:      "nowrap",
-        maxWidth:        "160px",
+        maxWidth:        "180px",
         overflow:        "hidden",
         textOverflow:    "ellipsis",
-        boxShadow:       "1px 2px 4px rgba(0,0,0,0.12)",
-        transformOrigin: "left center",
-        animation:       "pijltjes-flag-wave 3s ease-in-out infinite",
+        boxShadow:       "1px 2px 6px rgba(0,0,0,0.18)",
+        transformOrigin: "top center",
+        animation:       "pijltjes-flag-wave 4s ease-in-out infinite",
       });
       flagWrap.appendChild(flag);
       wrapper.appendChild(flagWrap);
@@ -352,7 +358,7 @@
       if (!document.getElementById("pijltjes-flag-style")) {
         var styleEl = document.createElement("style");
         styleEl.id = "pijltjes-flag-style";
-        styleEl.textContent = "@keyframes pijltjes-flag-wave { 0%,100%{transform:rotate(0deg) scaleX(1)} 30%{transform:rotate(1.5deg) scaleX(1.02)} 65%{transform:rotate(-1deg) scaleX(0.99)} }";
+        styleEl.textContent = "@keyframes pijltjes-flag-wave { 0%,100%{transform:rotate(0deg)} 35%{transform:rotate(2deg)} 70%{transform:rotate(-1.5deg)} }";
         document.head.appendChild(styleEl);
       }
     }
