@@ -107,6 +107,7 @@ export default function MobileBlaas() {
   const [showMsg, setShowMsg] = useState(false);
   // micReady: false = mic not yet activated, true = mic active and ready to blow
   const [micReady, setMicReady] = useState(false);
+  const [flagText, setFlagText] = useState("");
   const dartImg = DART_IMAGES[variant];
   const utils = trpc.useUtils();
 
@@ -230,9 +231,48 @@ export default function MobileBlaas() {
           position: "relative",
         }}
       >
-        {/* Dart */}
-        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", width: "100%", overflow: "hidden" }}>
+        {/* Dart + flag */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "100%", overflow: "hidden", gap: 0 }}>
           <img src={dartImg} alt="pijltje" style={dartStyle} draggable={false} />
+          {/* Waving flag below dart */}
+          {flagText.trim() && (
+            <div
+              style={{
+                marginTop: -8,
+                display: "flex",
+                alignItems: "center",
+                gap: 0,
+                pointerEvents: "none",
+                userSelect: "none",
+                animation: animState === "shooting" ? "mbl-flag-fly 0.55s cubic-bezier(0.23,1,0.32,1) forwards" : "none",
+              }}
+            >
+              {/* Flagpole */}
+              <div style={{ width: 2, height: 36, background: "#888", borderRadius: 1, flexShrink: 0 }} />
+              {/* Flag */}
+              <div
+                style={{
+                  background: "#fdf3e3",
+                  border: "1.5px solid #d4a84b",
+                  borderRadius: "0 6px 6px 0",
+                  padding: "4px 10px 4px 6px",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  fontFamily: "'Special Elite', 'Courier New', Courier, monospace",
+                  color: "#1a1a1a",
+                  whiteSpace: "nowrap",
+                  maxWidth: "60vw",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  transformOrigin: "left center",
+                  animation: "mbl-flag-wave 2.8s ease-in-out infinite",
+                  boxShadow: "1px 2px 6px rgba(0,0,0,0.10)",
+                }}
+              >
+                {flagText.trim()}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Button area */}
@@ -300,6 +340,43 @@ export default function MobileBlaas() {
               </button>
             </>
           )}
+
+          {/* Flag text input */}
+          <div style={{ width: "min(80vw, 340px)", marginTop: 4 }}>
+            <input
+              type="text"
+              value={flagText}
+              maxLength={30}
+              placeholder="Vlaggetje tekst (max 4 woorden)"
+              onChange={e => {
+                const val = e.target.value;
+                // Limit to 4 words
+                const words = val.trim().split(/\s+/);
+                if (words.length > 4 && val.endsWith(" ")) return;
+                if (words.length > 4) {
+                  setFlagText(words.slice(0, 4).join(" "));
+                } else {
+                  setFlagText(val.slice(0, 30));
+                }
+              }}
+              style={{
+                width: "100%",
+                boxSizing: "border-box",
+                border: "1.5px solid #d4a84b",
+                borderRadius: 20,
+                padding: "8px 16px",
+                fontSize: 14,
+                fontFamily: "'Special Elite', 'Courier New', Courier, monospace",
+                color: "#1a1a1a",
+                background: "#fdf3e3",
+                outline: "none",
+                textAlign: "center",
+              }}
+            />
+            <p style={{ margin: "4px 0 0", fontSize: 11, color: "#bbb", textAlign: "center", fontFamily: "'Special Elite', 'Courier New', Courier, monospace" }}>
+              {flagText.length}/30 · {flagText.trim() ? flagText.trim().split(/\s+/).length : 0}/4 woorden
+            </p>
+          </div>
 
           {/* Scroll hint arrow */}
           <div
@@ -394,6 +471,16 @@ export default function MobileBlaas() {
         @keyframes mbl-bar3 { from { height: 14px; } to { height: 28px; } }
         @keyframes mbl-bar4 { from { height: 8px; }  to { height: 20px; } }
         @keyframes mbl-bar5 { from { height: 5px; }  to { height: 18px; } }
+        @keyframes mbl-flag-wave {
+          0%   { transform: rotate(0deg) scaleX(1); }
+          25%  { transform: rotate(1.5deg) scaleX(1.02); }
+          50%  { transform: rotate(-1deg) scaleX(0.99); }
+          75%  { transform: rotate(1deg) scaleX(1.01); }
+          100% { transform: rotate(0deg) scaleX(1); }
+        }
+        @keyframes mbl-flag-fly {
+          to { opacity: 0; transform: translateX(110vw); }
+        }
       `}</style>
     </div>
   );
